@@ -111,9 +111,15 @@ const tests: [string, () => Promise<void>][] = [
     "the activity-bar badge counts the changes before the Commit view is ever shown",
     async () => {
       // Right after activation the Commit view was never shown, so a badge on that webview view
-      // would not exist. a.txt is the only change (see runTest.ts).
+      // would not exist. a.txt is the only change (see runTest.ts). The built-in Git extension
+      // opens the repository asynchronously after activation: poll until the badge appears.
+      let badge = await api.changeCountBadge();
+      for (const start = Date.now(); !badge && Date.now() - start < 15_000;) {
+        await new Promise((r) => setTimeout(r, 100));
+        badge = await api.changeCountBadge();
+      }
       assert.strictEqual(api.commitViewStatus(), undefined);
-      assert.deepStrictEqual(await api.changeCountBadge(), { value: 1, tooltip: "1 change" });
+      assert.deepStrictEqual(badge, { value: 1, tooltip: "1 change" });
     },
   ],
   [
