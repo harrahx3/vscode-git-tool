@@ -7,7 +7,7 @@ colors and native menus, and sits next to VS Code's own Source Control view with
 
 ## What you get
 
-**Git tool window** (bottom panel, tab _Git → Log_; command _Git Tool: Show Log_)
+**Git tool window** (bottom panel, tab _Git → Log_; command _Git Changelists & Log: Show Log_)
 
 - **Branches** pane: HEAD, Local, Remote and Tags, with branch names grouped into folders on `/`
   and ahead/behind counts. A click jumps to the branch's commit, a double-click shows only its
@@ -29,11 +29,11 @@ colors and native menus, and sits next to VS Code's own Source Control view with
   right-click for Compare with Local, Open Repository Version and Show History. The message,
   author, committer and parents (click a parent to jump to it) are shown below the files.
 
-**Branches and Compare** (activity-bar icon _Git Tool_, below Commit)
+**Branches and Compare** (activity-bar icon _Git Changelists & Log_, below Commit)
 
-- While git runs (a refresh, fetch, pull, push…), the _Git Tool_ activity-bar icon shows the
-  turning arrows, like VS Code's Source Control, and a progress bar runs at the top of the
-  Commit view and of the Log.
+- While git runs (a refresh, fetch, pull, push…), the _Git Changelists & Log_ activity-bar icon
+  shows the turning arrows, like VS Code's Source Control, and a progress bar runs at the top of
+  the Commit view and of the Log.
 
 - **Branches** view: HEAD, Local, Remote and Tags, with names grouped into folders on `/`. HEAD
   comes first, as in PyCharm, with the current branch (or "detached at <commit>") next to it.
@@ -59,7 +59,7 @@ colors and native menus, and sits next to VS Code's own Source Control view with
 - The Log toolbar has the same New Branch, Checkout and Compare buttons. Its branch menus offer
   Compare with Current and Compare with….
 
-**Commit tool window** (activity-bar icon _Commit_; command _Git Tool: Commit…_)
+**Commit tool window** (activity-bar icon _Commit_; command _Git Changelists & Log: Commit…_)
 
 One section: the commit message box at the top and, right under it, the changed files grouped
 into PyCharm's changelists with a checkbox per file. Git status colors and a change count on
@@ -96,8 +96,9 @@ the activity-bar icon work as in VS Code's Source Control view.
     The selected lines are highlighted. The link points to the current commit when it is pushed,
     else to the upstream branch. _Copy Link to File_ copies the link instead;
   - a file changed by a commit: right-click it in the Log's details;
-  - the repository and its merge request list: _Git Tool: Open Repository in Browser_ and _Open
-    Merge Requests in Browser_ (also in the Branches and Merge Requests view menus).
+  - the repository and its merge request list: _Git Changelists & Log: Open Repository in
+    Browser_ and _Open Merge Requests in Browser_ (also in the Branches and Merge Requests view
+    menus).
 - **Open Merge Request** (branch menus, the commit menu, the palette for the current branch) opens
   the open merge request of the branch, or the merge requests that contain a commit. With no
   merge request, it offers to create one.
@@ -107,8 +108,8 @@ the activity-bar icon work as in VS Code's Source Control view.
 - The remote used is the upstream of the current branch, else `origin`, else the first remote.
   Commits and branches the remote does not have yet get a warning before the page opens.
 
-**Merge Requests view** (activity-bar icon _Git Tool_, collapsed at first; _Git Tool: Show Merge
-Requests_)
+**Merge Requests view** (activity-bar icon _Git Changelists & Log_, collapsed at first; _Git
+Changelists & Log: Show Merge Requests_)
 
 - The open merge requests (GitLab) or pull requests (GitHub) of the remote, as one list. Each
   row shows the number, the author, _current branch_ for the one opened from the branch you are
@@ -132,8 +133,8 @@ Requests_)
 - The view only reads from the server (GET requests). Bitbucket is supported for the browser
   links, not for this view.
 
-**Issues view** (activity-bar icon _Git Tool_, under Merge Requests, collapsed at first; _Git
-Tool: Show Issues_)
+**Issues view** (activity-bar icon _Git Changelists & Log_, under Merge Requests, collapsed at
+first; _Git Changelists & Log: Show Issues_)
 
 - The open issues of the remote (GitLab or GitHub; pull requests are left out), as one list.
   Each row shows the number, the author and the labels; confidential issues have a lock. Hover
@@ -148,8 +149,8 @@ Tool: Show Issues_)
   Sign-in and credentials are the same as for the Merge Requests view (on GitLab the token's
   `read_api` scope covers issues). Read-only, like the Merge Requests view.
 
-**Worktrees view** (activity-bar icon _Git Tool_, collapsed at first; _Git Tool: Switch
-Worktree…_)
+**Worktrees view** (activity-bar icon _Git Changelists & Log_, collapsed at first; _Git
+Changelists & Log: Switch Worktree…_)
 
 - Every working tree of the repository (`git worktree list`), with the branch or detached commit
   it has checked out. The one the views show has a check mark; the main working tree, locked
@@ -190,7 +191,7 @@ Worktree…_)
   click. _Push Tag_ and _Push All Tags_; deleting a tag offers to delete it on the remote too.
 - **Stash Changes…** and **Unstash Changes** in the Commit view's `…` menu.
 
-Every command that changes the repository is logged in the _Git Tool_ output channel.
+Every command that changes the repository is logged in the _Git Changelists & Log_ output channel.
 
 **When git fails**, the extension recognises the problem and offers the way out:
 

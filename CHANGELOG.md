@@ -5,6 +5,9 @@
 - Published on GitHub and the Visual Studio Marketplace under the MIT license, as
   _Git Changelists & Log_. The extension ID is now `harrahx3.vscode-git-tool`:
   uninstall a build installed earlier from a `.vsix` with another ID, or both run side by side.
+- The command palette category, the activity-bar icon, the settings section and the output
+  channel are now called _Git Changelists & Log_ too. Settings (`gitTool.*`) and command IDs are
+  unchanged.
 - _Update Project_ is now called _Pull_ everywhere (title bar, Log toolbar, progress messages,
   the _Pull and Push_ fix of a rejected push). Same behaviour: fetch, then merge or rebase per
   `gitTool.updateMethod`, with local changes stashed around it.

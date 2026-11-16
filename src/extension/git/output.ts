@@ -1,11 +1,11 @@
-// The "Git Tool" output channel, and how recovery actions reach the views.
+// The "Git Changelists & Log" output channel, and how recovery actions reach the views.
 import * as vscode from "vscode";
 import type { Git } from "./runner";
 
 let output: vscode.OutputChannel | undefined;
 
 export function outputChannel(): vscode.OutputChannel {
-  output ??= vscode.window.createOutputChannel("Git Tool");
+  output ??= vscode.window.createOutputChannel("Git Changelists & Log");
   return output;
 }
 

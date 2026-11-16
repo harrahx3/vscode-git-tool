@@ -130,7 +130,7 @@ export function registerOperationCommands(reg: Register, repos: Repos): void {
       });
       if (message === undefined) return;
       await withProgress("Stash", async () => {
-        if (!(await stashChanges(git, message.trim() || "Git Tool stash")))
+        if (!(await stashChanges(git, message.trim() || "Git Changelists & Log stash")))
           void vscode.window.showInformationMessage("No local changes to stash.");
       });
     }),

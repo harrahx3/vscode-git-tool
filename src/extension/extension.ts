@@ -47,7 +47,7 @@ export interface TestApi {
   commitViewStatus(): { files: string[]; notice?: string } | undefined;
   /** Worktrees listed in the Worktrees view (refreshed first), as `folder:head[:current]`. */
   worktrees(): Promise<string[]>;
-  /** Change count on the Git Tool activity-bar icon (changes refreshed first). */
+  /** Change count on the Git Changelists & Log activity-bar icon (changes refreshed first). */
   changeCountBadge(): Promise<{ value: number; tooltip: string } | undefined>;
 }
 
@@ -156,10 +156,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<TestAp
 }
 
 /**
- * The number of changed files on the Git Tool activity-bar icon. It goes on the Branches tree
+ * The number of changed files on the extension's activity-bar icon. It goes on the Branches tree
  * view, not on the Commit view the count belongs to: VS Code keeps a webview view's badge on its
  * on-screen pane, which only exists once the view has been shown, so after a window reload the
- * icon had no count until the Git Tool was opened. A tree view's badge exists from activation.
+ * icon had no count until the container was opened. A tree view's badge exists from activation.
  * VS Code adds up the number badges of all views in a container, so exactly one view carries it.
  */
 function changeCountBadge(changes: Changes, view: vscode.TreeView<unknown>): vscode.Disposable {
@@ -176,7 +176,7 @@ function branchStatusItem(repos: Repos): vscode.Disposable {
     vscode.StatusBarAlignment.Right,
     1000,
   );
-  item.name = "Git Tool: Branches";
+  item.name = "Git Changelists & Log: Branches";
   item.command = "gitTool.branches";
   const update = async () => {
     const enabled = vscode.workspace.getConfiguration("gitTool").get("showBranchInStatusBar", true);

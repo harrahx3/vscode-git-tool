@@ -26,7 +26,7 @@ interface GitExtension {
 
 /**
  * Views that show progress while git runs: the Commit view puts the turning arrows on the
- * Git Tool activity-bar icon (VS Code does so for any view of a side-bar container) and a bar
+ * extension's activity-bar icon (VS Code does so for any view of a side-bar container) and a bar
  * at the top of the view; the Log gets the same bar in the panel.
  */
 const PROGRESS_VIEWS = ["gitTool.commit", "gitTool.log"];

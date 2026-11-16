@@ -278,9 +278,9 @@ async function smartRetry(
 async function stashAndRetry(title: string, git: Git, retry: Task): Promise<boolean> {
   let stashed: boolean;
   try {
-    stashed = await stashChanges(git, `Git Tool: before ${title}`);
+    stashed = await stashChanges(git, `Git Changelists & Log: before ${title}`);
   } catch (e) {
-    return recover("Stash", e, () => stashChanges(git, `Git Tool: before ${title}`));
+    return recover("Stash", e, () => stashChanges(git, `Git Changelists & Log: before ${title}`));
   }
   try {
     await vscode.window.withProgress(

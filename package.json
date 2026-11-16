@@ -59,7 +59,7 @@
       "activitybar": [
         {
           "id": "gitToolCommit",
-          "title": "Git Tool",
+          "title": "Git Changelists & Log",
           "icon": "media/commit.svg"
         }
       ]
@@ -114,41 +114,41 @@
       {
         "command": "gitTool.showLog",
         "title": "Show Log",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(list-unordered)"
       },
       {
         "command": "gitTool.showFileHistory",
         "title": "Show History",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(history)"
       },
       {
         "command": "gitTool.showSelectionHistory",
         "title": "Show History for Selection",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(history)"
       },
       {
         "command": "gitTool.annotate",
         "title": "Annotate with Git Blame",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(account)"
       },
       {
         "command": "gitTool.closeAnnotations",
         "title": "Close Annotations",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(close)"
       },
       {
         "command": "gitTool.branches",
         "title": "Branches…",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(git-branch)"
       },
       {
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "command": "gitTool.newBranch",
         "title": "New Branch…",
         "icon": {
@@ -157,7 +157,7 @@
         }
       },
       {
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "command": "gitTool.checkout",
         "title": "Checkout…",
         "icon": {
@@ -166,7 +166,7 @@
         }
       },
       {
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "command": "gitTool.compareBranches",
         "title": "Compare Branches…",
         "icon": "$(git-compare)"
@@ -174,142 +174,142 @@
       {
         "command": "gitTool.commit",
         "title": "Commit…",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(check)"
       },
       {
         "command": "gitTool.push",
         "title": "Push…",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(arrow-up)"
       },
       {
         "command": "gitTool.update",
         "title": "Pull",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(arrow-down)"
       },
       {
         "command": "gitTool.fetch",
         "title": "Fetch",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(repo-fetch)"
       },
       {
         "command": "gitTool.refresh",
         "title": "Refresh",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(refresh)"
       },
       {
         "command": "gitTool.newChangelist",
         "title": "New Changelist…",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(new-folder)"
       },
       {
         "command": "gitTool.showCommitInLog",
         "title": "Show Commit in Log",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.log.copyHash",
         "title": "Copy Revision Number",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(copy)"
       },
       {
         "command": "gitTool.log.checkout",
         "title": "Checkout Revision",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.log.newBranch",
         "title": "New Branch…",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.log.newTag",
         "title": "New Tag…",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.log.cherryPick",
         "title": "Cherry-Pick",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.log.revert",
         "title": "Revert Commit",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.log.undoCommit",
         "title": "Undo Commit",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.log.reset",
         "title": "Reset Current Branch to Here…",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.log.rebaseInteractive",
         "title": "Interactively Rebase from Here…",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.log.compareCommits",
         "title": "Compare the Two Commits",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(git-compare)"
       },
       {
         "command": "gitTool.log.copyHashes",
         "title": "Copy Selected Hashes",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(copy)"
       },
       {
         "command": "gitTool.log.cherryPickCommits",
         "title": "Cherry-Pick Selected Commits",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.log.revertCommits",
         "title": "Revert Selected Commits",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.ref.checkout",
         "title": "Checkout",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(check)"
       },
       {
         "command": "gitTool.ref.newBranch",
         "title": "New Branch from Here…",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.ref.compare",
         "title": "Compare with Current",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(git-compare)"
       },
       {
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "command": "gitTool.ref.compareWith",
         "title": "Compare with…",
         "icon": "$(git-compare)"
       },
       {
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "command": "gitTool.ref.showInLog",
         "title": "Show in Log"
       },
       {
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "command": "gitTool.ref.showHistory",
         "title": "Show History",
         "icon": "$(history)"
@@ -317,158 +317,158 @@
       {
         "command": "gitTool.ref.rebase",
         "title": "Rebase Current onto This",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.ref.merge",
         "title": "Merge into Current",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(git-merge)"
       },
       {
         "command": "gitTool.ref.push",
         "title": "Push…",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.ref.rename",
         "title": "Rename…",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.ref.delete",
         "title": "Delete",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.refs.compare",
         "title": "Compare Selected Branches",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(git-compare)"
       },
       {
         "command": "gitTool.refs.delete",
         "title": "Delete Selected…",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(trash)"
       },
       {
         "command": "gitTool.ref.actions",
         "title": "More Branch Actions…",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.commitFile.diff",
         "title": "Show Diff",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.commitFile.compareWithLocal",
         "title": "Compare with Local",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.commitFile.openRevision",
         "title": "Open Repository Version",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.commitFile.open",
         "title": "Open File",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.commitFile.history",
         "title": "Show History",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.change.diff",
         "title": "Show Diff",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(diff)"
       },
       {
         "command": "gitTool.change.open",
         "title": "Open File",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(go-to-file)"
       },
       {
         "command": "gitTool.change.history",
         "title": "Show History",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(history)"
       },
       {
         "command": "gitTool.change.rollback",
         "title": "Rollback…",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(discard)"
       },
       {
         "command": "gitTool.change.delete",
         "title": "Delete…",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(trash)"
       },
       {
         "command": "gitTool.change.ignore",
         "title": "Add to .gitignore",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.change.moveTo",
         "title": "Move to Another Changelist…",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.changelist.setActive",
         "title": "Set Active Changelist",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.changelist.rename",
         "title": "Edit Changelist…",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.changelist.remove",
         "title": "Delete Changelist",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "command": "gitTool.branches.refresh",
         "title": "Refresh Branches",
         "icon": "$(refresh)"
       },
       {
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "command": "gitTool.compare.diff",
         "title": "Show Diff",
         "icon": "$(diff)"
       },
       {
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "command": "gitTool.compare.compareWithLocal",
         "title": "Compare with Local",
         "icon": "$(diff-single)"
       },
       {
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "command": "gitTool.compare.swap",
         "title": "Swap Sides",
         "icon": "$(arrow-swap)"
       },
       {
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "command": "gitTool.compare.refresh",
         "title": "Refresh Comparison",
         "icon": "$(refresh)"
       },
       {
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "command": "gitTool.compare.close",
         "title": "Close Comparison",
         "icon": "$(close)"
@@ -476,322 +476,322 @@
       {
         "command": "gitTool.operation.resolve",
         "title": "Resolve Conflicts…",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(git-merge)"
       },
       {
         "command": "gitTool.operation.continue",
         "title": "Continue",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(debug-continue)"
       },
       {
         "command": "gitTool.operation.markResolved",
         "title": "Mark Resolved",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(check-all)"
       },
       {
         "command": "gitTool.operation.skip",
         "title": "Skip This Commit",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(debug-step-over)"
       },
       {
         "command": "gitTool.operation.abort",
         "title": "Abort",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(debug-stop)"
       },
       {
         "command": "gitTool.change.resolve",
         "title": "Resolve in Merge Editor",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(git-merge)"
       },
       {
         "command": "gitTool.change.acceptOurs",
         "title": "Accept Ours (--ours)",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.change.acceptTheirs",
         "title": "Accept Theirs (--theirs)",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.stash.push",
         "title": "Stash Changes…",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(git-stash)"
       },
       {
         "command": "gitTool.stash.pop",
         "title": "Unstash Changes",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(git-stash-pop)"
       },
       {
         "command": "gitTool.newTag",
         "title": "New Tag…",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(tag)"
       },
       {
         "command": "gitTool.ref.newTag",
         "title": "New Tag Here…",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(tag)"
       },
       {
         "command": "gitTool.ref.pushTag",
         "title": "Push Tag",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(cloud-upload)"
       },
       {
         "command": "gitTool.pushTags",
         "title": "Push All Tags",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(cloud-upload)"
       },
       {
         "command": "gitTool.openRepositoryInBrowser",
         "title": "Open Repository in Browser",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(globe)"
       },
       {
         "command": "gitTool.openBranchInBrowser",
         "title": "Open Current Branch in Browser",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(globe)"
       },
       {
         "command": "gitTool.openMergeRequestsInBrowser",
         "title": "Open Merge Requests in Browser",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(link-external)"
       },
       {
         "command": "gitTool.openFileInBrowser",
         "title": "Open File in Browser",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(globe)"
       },
       {
         "command": "gitTool.copyFileLink",
         "title": "Copy Link to File",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(link)"
       },
       {
         "command": "gitTool.ref.openInBrowser",
         "title": "Open in Browser",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(globe)"
       },
       {
         "command": "gitTool.ref.openMergeRequest",
         "title": "Open Merge Request",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(git-pull-request)"
       },
       {
         "command": "gitTool.ref.createMergeRequest",
         "title": "Create Merge Request…",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(git-pull-request-create)"
       },
       {
         "command": "gitTool.log.openInBrowser",
         "title": "Open in Browser",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(globe)"
       },
       {
         "command": "gitTool.log.openMergeRequest",
         "title": "Open Merge Request",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(git-pull-request)"
       },
       {
         "command": "gitTool.commitFile.openInBrowser",
         "title": "Open in Browser",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(globe)"
       },
       {
         "command": "gitTool.mergeRequests.show",
         "title": "Show Merge Requests",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(git-pull-request)"
       },
       {
         "command": "gitTool.mergeRequests.refresh",
         "title": "Refresh Merge Requests",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(refresh)"
       },
       {
         "command": "gitTool.mergeRequests.sort",
         "title": "Sort Merge Requests By…",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(list-ordered)"
       },
       {
         "command": "gitTool.mergeRequests.signIn",
         "title": "Sign In / Set Access Token…",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(account)"
       },
       {
         "command": "gitTool.mergeRequests.signOut",
         "title": "Forget Access Token",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(sign-out)"
       },
       {
         "command": "gitTool.mr.openInBrowser",
         "title": "Open in Browser",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(link-external)"
       },
       {
         "command": "gitTool.mr.copyLink",
         "title": "Copy Link",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(link)"
       },
       {
         "command": "gitTool.mr.checkout",
         "title": "Checkout Branch",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(check)"
       },
       {
         "command": "gitTool.mr.compare",
         "title": "Show in Compare View",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(git-compare)"
       },
       {
         "command": "gitTool.mr.diff",
         "title": "Show Diff",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(diff)"
       },
       {
         "command": "gitTool.issues.show",
         "title": "Show Issues",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(issues)"
       },
       {
         "command": "gitTool.issues.refresh",
         "title": "Refresh Issues",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(refresh)"
       },
       {
         "command": "gitTool.issues.sort",
         "title": "Sort Issues By…",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(list-ordered)"
       },
       {
         "command": "gitTool.issues.new",
         "title": "New Issue…",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(add)"
       },
       {
         "command": "gitTool.openIssuesInBrowser",
         "title": "Open Issues in Browser",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(link-external)"
       },
       {
         "command": "gitTool.issue.openInBrowser",
         "title": "Open in Browser",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(link-external)"
       },
       {
         "command": "gitTool.issue.copyLink",
         "title": "Copy Link",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(link)"
       },
       {
         "command": "gitTool.issue.createBranch",
         "title": "Create Branch…",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(git-branch-create)"
       },
       {
         "command": "gitTool.worktrees.switch",
         "title": "Switch Worktree…",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(folder-opened)"
       },
       {
         "command": "gitTool.worktrees.new",
         "title": "New Worktree…",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(add)"
       },
       {
         "command": "gitTool.worktrees.prune",
         "title": "Prune Missing Worktrees",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(trash)"
       },
       {
         "command": "gitTool.worktrees.refresh",
         "title": "Refresh Worktrees",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(refresh)"
       },
       {
         "command": "gitTool.worktree.open",
         "title": "Open (Switch to Worktree)",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(folder-opened)"
       },
       {
         "command": "gitTool.worktree.openNewWindow",
         "title": "Open in New Window",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(empty-window)"
       },
       {
         "command": "gitTool.worktree.addToWorkspace",
         "title": "Add to Workspace",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(root-folder)"
       },
       {
         "command": "gitTool.worktree.copyPath",
         "title": "Copy Path",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(copy)"
       },
       {
         "command": "gitTool.worktree.showInLog",
         "title": "Show in Log",
-        "category": "Git Tool"
+        "category": "Git Changelists & Log"
       },
       {
         "command": "gitTool.worktree.delete",
         "title": "Delete Worktree…",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(trash)"
       },
       {
         "command": "gitTool.ref.newWorktree",
         "title": "Check Out in New Worktree…",
-        "category": "Git Tool",
+        "category": "Git Changelists & Log",
         "icon": "$(add)"
       }
     ],
@@ -1997,7 +1997,7 @@
       }
     ],
     "configuration": {
-      "title": "Git Tool Window",
+      "title": "Git Changelists & Log",
       "properties": {
         "gitTool.showBranchInStatusBar": {
           "type": "boolean",
