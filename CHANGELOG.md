@@ -11,7 +11,38 @@
 - _Update Project_ is now called _Pull_ everywhere (title bar, Log toolbar, progress messages,
   the _Pull and Push_ fix of a rejected push). Same behaviour: fetch, then merge or rebase per
   `gitTool.updateMethod`, with local changes stashed around it.
-
+- **Commit view**: the changed files are now right under the commit message, Amend and Commit
+  buttons, in a single view. It keeps changelists (foldable, active one marked), a checkbox per
+  file and per changelist, Git status colors, a click for the diff (merge editor for
+  conflicts), hover buttons (Open File, Rollback, Delete, Resolve), multi-selection with
+  Ctrl/Shift+click and the keyboard, right-click menus, drag and drop between changelists and
+  the change-count badge. The title-bar buttons (Continue / Abort / Resolve, Rollback, Refresh,
+  New Changelist, Stash) are on this view.
+- **Branches view** in the side bar: HEAD first (current branch or "detached at <commit>", with
+  ahead/behind counts), then Local, Remote and Tags with folders on "/". A click shows the branch
+  in the Log; hover buttons for Checkout and Compare with Current; right-click for Checkout, New
+  Branch, Compare, Show History, Rebase, Merge, Push, Rename and Delete. On a multi-selection:
+  Compare Selected Branches and Delete Selected….
+- **Compare view**, like PyCharm's _Compare with Current_: the commits only on each side and the
+  files that differ between the two tips, with diffs; Swap, Refresh and Close in the title bar.
+- **Log**: New Branch, Checkout and Compare Branches buttons in the toolbar. Several commits can be
+  selected (Ctrl/Cmd+click, Shift+click, Shift+arrows, Ctrl/Cmd+A) to compare two commits, copy
+  their hashes, cherry-pick or revert them. New Branch and Checkout have distinct icons.
+- **Worktrees view**: every working tree of the repository, with its branch or commit and the
+  current, main, locked and missing ones marked. Open (switch), Open in New Window, Add to
+  Workspace, New Worktree… (also _Check Out in New Worktree…_ from the Branches view and the
+  Log), Delete Worktree… with confirmations, Prune Missing Worktrees, and a _Switch Worktree…_
+  quick pick.
+- **Open in Browser** for the repository, a branch or tag, a commit, a file with the selected
+  lines (or _Copy Link to File_) and a file changed by a commit, on GitLab (self-hosted too),
+  GitHub and Bitbucket. _Open Merge Request_ finds the merge request of a branch or the ones that
+  contain a commit; _Create Merge Request…_ opens the "new merge request" page and offers to push
+  the branch first.
+- **Merge Requests view** (merge requests on GitLab, pull requests on GitHub): expand one to see
+  its changed files with diffs; check it out, compare it, open it or copy its link. **Issues
+  view**: open issues of the remote, open in the browser, copy the link, or create a branch named
+  `<number>-<title>`. API access is read-only and uses a token kept in VS Code's secret storage,
+  VS Code's GitHub sign-in, or the `glab` / `gh` command-line tools.
 - Merge Requests and Issues views: one flat list instead of the _Current Branch_, _Assigned to
   Me_, _Created by Me_ and _All Open_ groups. A _Sort By…_ title button orders it by last update
   (default), creation date, creator, assignee, title or number; the choice is remembered per
@@ -20,6 +51,25 @@
   longer fails with `spawn gh EACCES` (a Windows folder on the WSL PATH makes Node report a
   permission error instead of "not found"). The views now offer "Sign In / Set Access
   Token…" as they do when `gh` is absent.
+- **Recovery from git errors**: a failed command now says what went wrong and offers the way out.
+  Stash and Retry or Force Checkout when local changes are in the way; Resolve Conflicts (merge
+  editor) or Abort for a merge, rebase, cherry-pick, revert or unstash, with Continue / Skip /
+  Abort buttons while it is in progress; Retry or Run in Terminal for authentication and SSH host
+  keys; Pull and Push or Force Push (with lease) for a rejected push, with the server's reason;
+  and clear messages for a missing upstream, remote or identity, a detached HEAD, failed signing,
+  a stale `index.lock`, unrelated histories, network errors and more.
+- **Hooks**: when a pre-commit or pre-push hook refuses, a report opens beside the editor (with
+  `file:line` findings linked to their lines), the findings go to the Problems panel, and the
+  notification offers Commit Again or Skip Hooks. A passing pre-commit summary shows in the
+  status bar.
+- **Tags**: New Tag suggests the next name (`PREFIX_YYMMDD` or the next patch version), creates
+  an annotated or lightweight tag and offers to push it; Push Tag, Push All Tags, and deleting a
+  tag can delete it on the remote.
+- While git runs, the activity-bar icon shows turning arrows (like Source Control) and a progress
+  bar runs at the top of the Commit view and of the Log.
+- Fixed: the change-count badge on the activity-bar icon now shows from the start, not only
+  after the views were opened once.
+- Fixed: the right-click menus of the Log view were always empty.
 
 ## 0.2.0 — 2026-11-09
 
