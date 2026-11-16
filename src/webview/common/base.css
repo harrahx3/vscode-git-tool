@@ -1,0 +1,177 @@
+/* Shared look of both webviews: VS Code theme variables, compact PyCharm-like rows. */
+:root {
+  --row-h: 22px;
+  --border: var(--vscode-panel-border, var(--vscode-widget-border, rgba(128, 128, 128, 0.35)));
+  --dim: var(--vscode-descriptionForeground);
+  --sel-bg: var(--vscode-list-inactiveSelectionBackground);
+  --sel-fg: var(--vscode-list-inactiveSelectionForeground, inherit);
+  --sel-focus-bg: var(--vscode-list-activeSelectionBackground);
+  --sel-focus-fg: var(--vscode-list-activeSelectionForeground, inherit);
+  --hover-bg: var(--vscode-list-hoverBackground);
+  --st-modified: var(--vscode-gitDecoration-modifiedResourceForeground, #4f8fd6);
+  --st-added: var(--vscode-gitDecoration-addedResourceForeground, #4aa564);
+  --st-deleted: var(--vscode-gitDecoration-deletedResourceForeground, #8c8c8c);
+  --st-renamed: var(--vscode-gitDecoration-renamedResourceForeground, #4f8fd6);
+  --st-untracked: var(--vscode-gitDecoration-untrackedResourceForeground, #c4793a);
+  --st-conflict: var(--vscode-gitDecoration-conflictingResourceForeground, #e5534b);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(
+    --vscode-panel-background,
+    var(--vscode-sideBar-background, var(--vscode-editor-background))
+  );
+  color: var(--vscode-foreground);
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size, 13px);
+  user-select: none;
+}
+
+#app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: nowrap;
+  min-height: 30px;
+  overflow: hidden;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--vscode-icon-foreground, var(--vscode-foreground));
+  cursor: pointer;
+  flex: none;
+}
+
+.svg-icon {
+  display: inline-flex;
+}
+
+.icon-button:hover {
+  background: var(--vscode-toolbar-hoverBackground, var(--hover-bg));
+}
+
+.icon-button.active {
+  background: var(--vscode-inputOption-activeBackground, var(--sel-bg));
+  color: var(--vscode-inputOption-activeForeground, inherit);
+}
+
+.icon-button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+input[type="search"],
+input[type="text"],
+select,
+textarea {
+  background: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border: 1px solid var(--vscode-input-border, transparent);
+  border-radius: 2px;
+  font: inherit;
+  height: 22px;
+  padding: 0 4px;
+  min-width: 0;
+}
+
+select {
+  background: var(--vscode-dropdown-background);
+  color: var(--vscode-dropdown-foreground);
+  border-color: var(--vscode-dropdown-border, transparent);
+}
+
+input[type="checkbox"] {
+  margin: 0 4px 0 0;
+  accent-color: var(--vscode-checkbox-selectBackground, var(--vscode-button-background));
+  flex: none;
+}
+
+.error-bar {
+  padding: 4px 8px;
+  background: var(--vscode-inputValidation-errorBackground, rgba(229, 83, 75, 0.15));
+  border-bottom: 1px solid var(--vscode-inputValidation-errorBorder, #e5534b);
+  white-space: pre-wrap;
+  user-select: text;
+}
+
+.empty {
+  padding: 12px;
+  color: var(--dim);
+}
+
+.count,
+.dim {
+  color: var(--dim);
+}
+
+.count {
+  margin-left: 8px;
+  font-size: 0.92em;
+}
+
+.status-M .name,
+.status-T .name {
+  color: var(--st-modified);
+}
+.status-A .name,
+.status-C .name {
+  color: var(--st-added);
+}
+.status-D .name {
+  color: var(--st-deleted);
+  text-decoration: line-through;
+}
+.status-R .name {
+  color: var(--st-renamed);
+}
+.status-U .name {
+  color: var(--st-conflict);
+}
+.status-untracked .name {
+  color: var(--st-untracked);
+}
+
+.codicon {
+  flex: none;
+}

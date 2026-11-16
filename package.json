@@ -1,0 +1,2078 @@
+{
+  "name": "vscode-git-tool",
+  "displayName": "Git Changelists & Log",
+  "description": "Commit graph, branches, worktrees, changelists with per-file checkboxes, annotate and history, and GitLab/GitHub merge requests and issues, in Git tool windows inspired by PyCharm.",
+  "version": "0.2.0",
+  "publisher": "harrahx3",
+  "author": {
+    "name": "harrahx3"
+  },
+  "license": "MIT",
+  "icon": "assets/marketplace-icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/harrahx3/vscode-git-tool.git"
+  },
+  "bugs": {
+    "url": "https://github.com/harrahx3/vscode-git-tool/issues"
+  },
+  "homepage": "https://github.com/harrahx3/vscode-git-tool#readme",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "SCM Providers",
+    "Other"
+  ],
+  "keywords": [
+    "git",
+    "log",
+    "graph",
+    "blame",
+    "annotate",
+    "changelist",
+    "pycharm",
+    "intellij",
+    "merge request",
+    "pull request",
+    "gitlab",
+    "github",
+    "browser",
+    "issues"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "extensionDependencies": [
+    "vscode.git"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "panel": [
+        {
+          "id": "gitTool",
+          "title": "Git",
+          "icon": "media/git.svg"
+        }
+      ],
+      "activitybar": [
+        {
+          "id": "gitToolCommit",
+          "title": "Git Tool",
+          "icon": "media/commit.svg"
+        }
+      ]
+    },
+    "views": {
+      "gitTool": [
+        {
+          "type": "webview",
+          "id": "gitTool.log",
+          "name": "Log"
+        }
+      ],
+      "gitToolCommit": [
+        {
+          "type": "webview",
+          "id": "gitTool.commit",
+          "name": "Commit",
+          "initialSize": 4
+        },
+        {
+          "id": "gitTool.branches",
+          "name": "Branches",
+          "initialSize": 3
+        },
+        {
+          "id": "gitTool.compare",
+          "name": "Compare",
+          "initialSize": 3,
+          "when": "gitTool.comparing"
+        },
+        {
+          "id": "gitTool.mergeRequests",
+          "name": "Merge Requests",
+          "initialSize": 2,
+          "visibility": "collapsed"
+        },
+        {
+          "id": "gitTool.issues",
+          "name": "Issues",
+          "initialSize": 2,
+          "visibility": "collapsed"
+        },
+        {
+          "id": "gitTool.worktrees",
+          "name": "Worktrees",
+          "initialSize": 2,
+          "visibility": "collapsed"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "gitTool.showLog",
+        "title": "Show Log",
+        "category": "Git Tool",
+        "icon": "$(list-unordered)"
+      },
+      {
+        "command": "gitTool.showFileHistory",
+        "title": "Show History",
+        "category": "Git Tool",
+        "icon": "$(history)"
+      },
+      {
+        "command": "gitTool.showSelectionHistory",
+        "title": "Show History for Selection",
+        "category": "Git Tool",
+        "icon": "$(history)"
+      },
+      {
+        "command": "gitTool.annotate",
+        "title": "Annotate with Git Blame",
+        "category": "Git Tool",
+        "icon": "$(account)"
+      },
+      {
+        "command": "gitTool.closeAnnotations",
+        "title": "Close Annotations",
+        "category": "Git Tool",
+        "icon": "$(close)"
+      },
+      {
+        "command": "gitTool.branches",
+        "title": "Branches…",
+        "category": "Git Tool",
+        "icon": "$(git-branch)"
+      },
+      {
+        "category": "Git Tool",
+        "command": "gitTool.newBranch",
+        "title": "New Branch…",
+        "icon": {
+          "light": "media/branch-new-light.svg",
+          "dark": "media/branch-new-dark.svg"
+        }
+      },
+      {
+        "category": "Git Tool",
+        "command": "gitTool.checkout",
+        "title": "Checkout…",
+        "icon": {
+          "light": "media/branch-checkout-light.svg",
+          "dark": "media/branch-checkout-dark.svg"
+        }
+      },
+      {
+        "category": "Git Tool",
+        "command": "gitTool.compareBranches",
+        "title": "Compare Branches…",
+        "icon": "$(git-compare)"
+      },
+      {
+        "command": "gitTool.commit",
+        "title": "Commit…",
+        "category": "Git Tool",
+        "icon": "$(check)"
+      },
+      {
+        "command": "gitTool.push",
+        "title": "Push…",
+        "category": "Git Tool",
+        "icon": "$(arrow-up)"
+      },
+      {
+        "command": "gitTool.update",
+        "title": "Pull",
+        "category": "Git Tool",
+        "icon": "$(arrow-down)"
+      },
+      {
+        "command": "gitTool.fetch",
+        "title": "Fetch",
+        "category": "Git Tool",
+        "icon": "$(repo-fetch)"
+      },
+      {
+        "command": "gitTool.refresh",
+        "title": "Refresh",
+        "category": "Git Tool",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "gitTool.newChangelist",
+        "title": "New Changelist…",
+        "category": "Git Tool",
+        "icon": "$(new-folder)"
+      },
+      {
+        "command": "gitTool.showCommitInLog",
+        "title": "Show Commit in Log",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.log.copyHash",
+        "title": "Copy Revision Number",
+        "category": "Git Tool",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "gitTool.log.checkout",
+        "title": "Checkout Revision",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.log.newBranch",
+        "title": "New Branch…",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.log.newTag",
+        "title": "New Tag…",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.log.cherryPick",
+        "title": "Cherry-Pick",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.log.revert",
+        "title": "Revert Commit",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.log.undoCommit",
+        "title": "Undo Commit",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.log.reset",
+        "title": "Reset Current Branch to Here…",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.log.rebaseInteractive",
+        "title": "Interactively Rebase from Here…",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.log.compareCommits",
+        "title": "Compare the Two Commits",
+        "category": "Git Tool",
+        "icon": "$(git-compare)"
+      },
+      {
+        "command": "gitTool.log.copyHashes",
+        "title": "Copy Selected Hashes",
+        "category": "Git Tool",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "gitTool.log.cherryPickCommits",
+        "title": "Cherry-Pick Selected Commits",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.log.revertCommits",
+        "title": "Revert Selected Commits",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.ref.checkout",
+        "title": "Checkout",
+        "category": "Git Tool",
+        "icon": "$(check)"
+      },
+      {
+        "command": "gitTool.ref.newBranch",
+        "title": "New Branch from Here…",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.ref.compare",
+        "title": "Compare with Current",
+        "category": "Git Tool",
+        "icon": "$(git-compare)"
+      },
+      {
+        "category": "Git Tool",
+        "command": "gitTool.ref.compareWith",
+        "title": "Compare with…",
+        "icon": "$(git-compare)"
+      },
+      {
+        "category": "Git Tool",
+        "command": "gitTool.ref.showInLog",
+        "title": "Show in Log"
+      },
+      {
+        "category": "Git Tool",
+        "command": "gitTool.ref.showHistory",
+        "title": "Show History",
+        "icon": "$(history)"
+      },
+      {
+        "command": "gitTool.ref.rebase",
+        "title": "Rebase Current onto This",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.ref.merge",
+        "title": "Merge into Current",
+        "category": "Git Tool",
+        "icon": "$(git-merge)"
+      },
+      {
+        "command": "gitTool.ref.push",
+        "title": "Push…",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.ref.rename",
+        "title": "Rename…",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.ref.delete",
+        "title": "Delete",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.refs.compare",
+        "title": "Compare Selected Branches",
+        "category": "Git Tool",
+        "icon": "$(git-compare)"
+      },
+      {
+        "command": "gitTool.refs.delete",
+        "title": "Delete Selected…",
+        "category": "Git Tool",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "gitTool.ref.actions",
+        "title": "More Branch Actions…",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.commitFile.diff",
+        "title": "Show Diff",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.commitFile.compareWithLocal",
+        "title": "Compare with Local",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.commitFile.openRevision",
+        "title": "Open Repository Version",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.commitFile.open",
+        "title": "Open File",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.commitFile.history",
+        "title": "Show History",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.change.diff",
+        "title": "Show Diff",
+        "category": "Git Tool",
+        "icon": "$(diff)"
+      },
+      {
+        "command": "gitTool.change.open",
+        "title": "Open File",
+        "category": "Git Tool",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "gitTool.change.history",
+        "title": "Show History",
+        "category": "Git Tool",
+        "icon": "$(history)"
+      },
+      {
+        "command": "gitTool.change.rollback",
+        "title": "Rollback…",
+        "category": "Git Tool",
+        "icon": "$(discard)"
+      },
+      {
+        "command": "gitTool.change.delete",
+        "title": "Delete…",
+        "category": "Git Tool",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "gitTool.change.ignore",
+        "title": "Add to .gitignore",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.change.moveTo",
+        "title": "Move to Another Changelist…",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.changelist.setActive",
+        "title": "Set Active Changelist",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.changelist.rename",
+        "title": "Edit Changelist…",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.changelist.remove",
+        "title": "Delete Changelist",
+        "category": "Git Tool"
+      },
+      {
+        "category": "Git Tool",
+        "command": "gitTool.branches.refresh",
+        "title": "Refresh Branches",
+        "icon": "$(refresh)"
+      },
+      {
+        "category": "Git Tool",
+        "command": "gitTool.compare.diff",
+        "title": "Show Diff",
+        "icon": "$(diff)"
+      },
+      {
+        "category": "Git Tool",
+        "command": "gitTool.compare.compareWithLocal",
+        "title": "Compare with Local",
+        "icon": "$(diff-single)"
+      },
+      {
+        "category": "Git Tool",
+        "command": "gitTool.compare.swap",
+        "title": "Swap Sides",
+        "icon": "$(arrow-swap)"
+      },
+      {
+        "category": "Git Tool",
+        "command": "gitTool.compare.refresh",
+        "title": "Refresh Comparison",
+        "icon": "$(refresh)"
+      },
+      {
+        "category": "Git Tool",
+        "command": "gitTool.compare.close",
+        "title": "Close Comparison",
+        "icon": "$(close)"
+      },
+      {
+        "command": "gitTool.operation.resolve",
+        "title": "Resolve Conflicts…",
+        "category": "Git Tool",
+        "icon": "$(git-merge)"
+      },
+      {
+        "command": "gitTool.operation.continue",
+        "title": "Continue",
+        "category": "Git Tool",
+        "icon": "$(debug-continue)"
+      },
+      {
+        "command": "gitTool.operation.markResolved",
+        "title": "Mark Resolved",
+        "category": "Git Tool",
+        "icon": "$(check-all)"
+      },
+      {
+        "command": "gitTool.operation.skip",
+        "title": "Skip This Commit",
+        "category": "Git Tool",
+        "icon": "$(debug-step-over)"
+      },
+      {
+        "command": "gitTool.operation.abort",
+        "title": "Abort",
+        "category": "Git Tool",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "gitTool.change.resolve",
+        "title": "Resolve in Merge Editor",
+        "category": "Git Tool",
+        "icon": "$(git-merge)"
+      },
+      {
+        "command": "gitTool.change.acceptOurs",
+        "title": "Accept Ours (--ours)",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.change.acceptTheirs",
+        "title": "Accept Theirs (--theirs)",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.stash.push",
+        "title": "Stash Changes…",
+        "category": "Git Tool",
+        "icon": "$(git-stash)"
+      },
+      {
+        "command": "gitTool.stash.pop",
+        "title": "Unstash Changes",
+        "category": "Git Tool",
+        "icon": "$(git-stash-pop)"
+      },
+      {
+        "command": "gitTool.newTag",
+        "title": "New Tag…",
+        "category": "Git Tool",
+        "icon": "$(tag)"
+      },
+      {
+        "command": "gitTool.ref.newTag",
+        "title": "New Tag Here…",
+        "category": "Git Tool",
+        "icon": "$(tag)"
+      },
+      {
+        "command": "gitTool.ref.pushTag",
+        "title": "Push Tag",
+        "category": "Git Tool",
+        "icon": "$(cloud-upload)"
+      },
+      {
+        "command": "gitTool.pushTags",
+        "title": "Push All Tags",
+        "category": "Git Tool",
+        "icon": "$(cloud-upload)"
+      },
+      {
+        "command": "gitTool.openRepositoryInBrowser",
+        "title": "Open Repository in Browser",
+        "category": "Git Tool",
+        "icon": "$(globe)"
+      },
+      {
+        "command": "gitTool.openBranchInBrowser",
+        "title": "Open Current Branch in Browser",
+        "category": "Git Tool",
+        "icon": "$(globe)"
+      },
+      {
+        "command": "gitTool.openMergeRequestsInBrowser",
+        "title": "Open Merge Requests in Browser",
+        "category": "Git Tool",
+        "icon": "$(link-external)"
+      },
+      {
+        "command": "gitTool.openFileInBrowser",
+        "title": "Open File in Browser",
+        "category": "Git Tool",
+        "icon": "$(globe)"
+      },
+      {
+        "command": "gitTool.copyFileLink",
+        "title": "Copy Link to File",
+        "category": "Git Tool",
+        "icon": "$(link)"
+      },
+      {
+        "command": "gitTool.ref.openInBrowser",
+        "title": "Open in Browser",
+        "category": "Git Tool",
+        "icon": "$(globe)"
+      },
+      {
+        "command": "gitTool.ref.openMergeRequest",
+        "title": "Open Merge Request",
+        "category": "Git Tool",
+        "icon": "$(git-pull-request)"
+      },
+      {
+        "command": "gitTool.ref.createMergeRequest",
+        "title": "Create Merge Request…",
+        "category": "Git Tool",
+        "icon": "$(git-pull-request-create)"
+      },
+      {
+        "command": "gitTool.log.openInBrowser",
+        "title": "Open in Browser",
+        "category": "Git Tool",
+        "icon": "$(globe)"
+      },
+      {
+        "command": "gitTool.log.openMergeRequest",
+        "title": "Open Merge Request",
+        "category": "Git Tool",
+        "icon": "$(git-pull-request)"
+      },
+      {
+        "command": "gitTool.commitFile.openInBrowser",
+        "title": "Open in Browser",
+        "category": "Git Tool",
+        "icon": "$(globe)"
+      },
+      {
+        "command": "gitTool.mergeRequests.show",
+        "title": "Show Merge Requests",
+        "category": "Git Tool",
+        "icon": "$(git-pull-request)"
+      },
+      {
+        "command": "gitTool.mergeRequests.refresh",
+        "title": "Refresh Merge Requests",
+        "category": "Git Tool",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "gitTool.mergeRequests.sort",
+        "title": "Sort Merge Requests By…",
+        "category": "Git Tool",
+        "icon": "$(list-ordered)"
+      },
+      {
+        "command": "gitTool.mergeRequests.signIn",
+        "title": "Sign In / Set Access Token…",
+        "category": "Git Tool",
+        "icon": "$(account)"
+      },
+      {
+        "command": "gitTool.mergeRequests.signOut",
+        "title": "Forget Access Token",
+        "category": "Git Tool",
+        "icon": "$(sign-out)"
+      },
+      {
+        "command": "gitTool.mr.openInBrowser",
+        "title": "Open in Browser",
+        "category": "Git Tool",
+        "icon": "$(link-external)"
+      },
+      {
+        "command": "gitTool.mr.copyLink",
+        "title": "Copy Link",
+        "category": "Git Tool",
+        "icon": "$(link)"
+      },
+      {
+        "command": "gitTool.mr.checkout",
+        "title": "Checkout Branch",
+        "category": "Git Tool",
+        "icon": "$(check)"
+      },
+      {
+        "command": "gitTool.mr.compare",
+        "title": "Show in Compare View",
+        "category": "Git Tool",
+        "icon": "$(git-compare)"
+      },
+      {
+        "command": "gitTool.mr.diff",
+        "title": "Show Diff",
+        "category": "Git Tool",
+        "icon": "$(diff)"
+      },
+      {
+        "command": "gitTool.issues.show",
+        "title": "Show Issues",
+        "category": "Git Tool",
+        "icon": "$(issues)"
+      },
+      {
+        "command": "gitTool.issues.refresh",
+        "title": "Refresh Issues",
+        "category": "Git Tool",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "gitTool.issues.sort",
+        "title": "Sort Issues By…",
+        "category": "Git Tool",
+        "icon": "$(list-ordered)"
+      },
+      {
+        "command": "gitTool.issues.new",
+        "title": "New Issue…",
+        "category": "Git Tool",
+        "icon": "$(add)"
+      },
+      {
+        "command": "gitTool.openIssuesInBrowser",
+        "title": "Open Issues in Browser",
+        "category": "Git Tool",
+        "icon": "$(link-external)"
+      },
+      {
+        "command": "gitTool.issue.openInBrowser",
+        "title": "Open in Browser",
+        "category": "Git Tool",
+        "icon": "$(link-external)"
+      },
+      {
+        "command": "gitTool.issue.copyLink",
+        "title": "Copy Link",
+        "category": "Git Tool",
+        "icon": "$(link)"
+      },
+      {
+        "command": "gitTool.issue.createBranch",
+        "title": "Create Branch…",
+        "category": "Git Tool",
+        "icon": "$(git-branch-create)"
+      },
+      {
+        "command": "gitTool.worktrees.switch",
+        "title": "Switch Worktree…",
+        "category": "Git Tool",
+        "icon": "$(folder-opened)"
+      },
+      {
+        "command": "gitTool.worktrees.new",
+        "title": "New Worktree…",
+        "category": "Git Tool",
+        "icon": "$(add)"
+      },
+      {
+        "command": "gitTool.worktrees.prune",
+        "title": "Prune Missing Worktrees",
+        "category": "Git Tool",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "gitTool.worktrees.refresh",
+        "title": "Refresh Worktrees",
+        "category": "Git Tool",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "gitTool.worktree.open",
+        "title": "Open (Switch to Worktree)",
+        "category": "Git Tool",
+        "icon": "$(folder-opened)"
+      },
+      {
+        "command": "gitTool.worktree.openNewWindow",
+        "title": "Open in New Window",
+        "category": "Git Tool",
+        "icon": "$(empty-window)"
+      },
+      {
+        "command": "gitTool.worktree.addToWorkspace",
+        "title": "Add to Workspace",
+        "category": "Git Tool",
+        "icon": "$(root-folder)"
+      },
+      {
+        "command": "gitTool.worktree.copyPath",
+        "title": "Copy Path",
+        "category": "Git Tool",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "gitTool.worktree.showInLog",
+        "title": "Show in Log",
+        "category": "Git Tool"
+      },
+      {
+        "command": "gitTool.worktree.delete",
+        "title": "Delete Worktree…",
+        "category": "Git Tool",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "gitTool.ref.newWorktree",
+        "title": "Check Out in New Worktree…",
+        "category": "Git Tool",
+        "icon": "$(add)"
+      }
+    ],
+    "submenus": [
+      {
+        "id": "gitTool.editorMenu",
+        "label": "Git"
+      },
+      {
+        "id": "gitTool.explorerMenu",
+        "label": "Git"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "gitTool.showCommitInLog",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.log.copyHash",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.log.checkout",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.log.newBranch",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.log.newTag",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.log.cherryPick",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.log.revert",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.log.undoCommit",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.log.reset",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.log.rebaseInteractive",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.ref.checkout",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.ref.newBranch",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.ref.compare",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.ref.rebase",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.ref.merge",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.ref.push",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.ref.rename",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.ref.delete",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.ref.actions",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.commitFile.diff",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.commitFile.compareWithLocal",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.commitFile.openRevision",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.commitFile.open",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.commitFile.history",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.change.diff",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.change.open",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.change.history",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.change.rollback",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.change.delete",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.change.ignore",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.change.moveTo",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.changelist.setActive",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.changelist.rename",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.changelist.remove",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.closeAnnotations",
+          "when": "gitTool.annotated"
+        },
+        {
+          "command": "gitTool.showSelectionHistory",
+          "when": "editorIsOpen"
+        },
+        {
+          "command": "gitTool.ref.compareWith",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.ref.showInLog",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.ref.showHistory",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.compare.diff",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.compare.compareWithLocal",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.compare.swap",
+          "when": "gitTool.comparing"
+        },
+        {
+          "command": "gitTool.compare.refresh",
+          "when": "gitTool.comparing"
+        },
+        {
+          "command": "gitTool.compare.close",
+          "when": "gitTool.comparing"
+        },
+        {
+          "command": "gitTool.log.compareCommits",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.log.copyHashes",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.log.cherryPickCommits",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.log.revertCommits",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.refs.compare",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.refs.delete",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.change.resolve",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.change.acceptOurs",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.change.acceptTheirs",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.ref.newTag",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.ref.pushTag",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.operation.continue",
+          "when": "gitTool.operation != '' || gitTool.conflicts"
+        },
+        {
+          "command": "gitTool.operation.abort",
+          "when": "gitTool.operation != ''"
+        },
+        {
+          "command": "gitTool.operation.skip",
+          "when": "gitTool.operation =~ /^(rebase|cherry-pick|revert)$/"
+        },
+        {
+          "command": "gitTool.operation.markResolved",
+          "when": "gitTool.operation == '' && gitTool.conflicts"
+        },
+        {
+          "command": "gitTool.operation.resolve",
+          "when": "gitTool.conflicts"
+        },
+        {
+          "command": "gitTool.ref.openInBrowser",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.log.openInBrowser",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.log.openMergeRequest",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.commitFile.openInBrowser",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.mr.openInBrowser",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.mr.copyLink",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.mr.checkout",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.mr.compare",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.mr.diff",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.issue.openInBrowser",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.issue.copyLink",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.issue.createBranch",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.openFileInBrowser",
+          "when": "editorIsOpen"
+        },
+        {
+          "command": "gitTool.copyFileLink",
+          "when": "editorIsOpen"
+        },
+        {
+          "command": "gitTool.worktree.open",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.worktree.openNewWindow",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.worktree.addToWorkspace",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.worktree.copyPath",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.worktree.showInLog",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.worktree.delete",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.ref.newWorktree",
+          "when": "false"
+        }
+      ],
+      "webview/context": [
+        {
+          "command": "gitTool.log.copyHash",
+          "when": "webviewId == gitTool.log && webviewSection == commit",
+          "group": "1_copy@1"
+        },
+        {
+          "command": "gitTool.log.checkout",
+          "when": "webviewId == gitTool.log && webviewSection == commit",
+          "group": "2_branch@1"
+        },
+        {
+          "command": "gitTool.log.newBranch",
+          "when": "webviewId == gitTool.log && webviewSection == commit",
+          "group": "2_branch@2"
+        },
+        {
+          "command": "gitTool.log.newTag",
+          "when": "webviewId == gitTool.log && webviewSection == commit",
+          "group": "2_branch@3"
+        },
+        {
+          "command": "gitTool.log.cherryPick",
+          "when": "webviewId == gitTool.log && webviewSection == commit",
+          "group": "3_change@1"
+        },
+        {
+          "command": "gitTool.log.revert",
+          "when": "webviewId == gitTool.log && webviewSection == commit",
+          "group": "3_change@2"
+        },
+        {
+          "command": "gitTool.log.undoCommit",
+          "when": "webviewId == gitTool.log && webviewSection == commit && isHead",
+          "group": "3_change@3"
+        },
+        {
+          "command": "gitTool.log.reset",
+          "when": "webviewId == gitTool.log && webviewSection == commit",
+          "group": "4_history@1"
+        },
+        {
+          "command": "gitTool.log.rebaseInteractive",
+          "when": "webviewId == gitTool.log && webviewSection == commit",
+          "group": "4_history@2"
+        },
+        {
+          "command": "gitTool.log.compareCommits",
+          "when": "webviewId == gitTool.log && webviewSection == commits && isPair",
+          "group": "1_compare@1"
+        },
+        {
+          "command": "gitTool.log.copyHashes",
+          "when": "webviewId == gitTool.log && webviewSection == commits",
+          "group": "2_copy@1"
+        },
+        {
+          "command": "gitTool.log.cherryPickCommits",
+          "when": "webviewId == gitTool.log && webviewSection == commits",
+          "group": "3_change@1"
+        },
+        {
+          "command": "gitTool.log.revertCommits",
+          "when": "webviewId == gitTool.log && webviewSection == commits",
+          "group": "3_change@2"
+        },
+        {
+          "command": "gitTool.ref.checkout",
+          "when": "webviewId == gitTool.log && webviewSection == ref && !isCurrent",
+          "group": "1_checkout@1"
+        },
+        {
+          "command": "gitTool.ref.newBranch",
+          "when": "webviewId == gitTool.log && webviewSection == ref",
+          "group": "1_checkout@2"
+        },
+        {
+          "command": "gitTool.ref.compare",
+          "when": "webviewId == gitTool.log && webviewSection == ref && !isCurrent",
+          "group": "2_integrate@0"
+        },
+        {
+          "command": "gitTool.ref.compareWith",
+          "when": "webviewId == gitTool.log && webviewSection == ref",
+          "group": "2_integrate@1"
+        },
+        {
+          "command": "gitTool.ref.rebase",
+          "when": "webviewId == gitTool.log && webviewSection == ref && !isCurrent",
+          "group": "2_integrate@2"
+        },
+        {
+          "command": "gitTool.ref.merge",
+          "when": "webviewId == gitTool.log && webviewSection == ref && !isCurrent",
+          "group": "2_integrate@3"
+        },
+        {
+          "command": "gitTool.ref.push",
+          "when": "webviewId == gitTool.log && webviewSection == ref && refKind == head",
+          "group": "3_manage@1"
+        },
+        {
+          "command": "gitTool.ref.rename",
+          "when": "webviewId == gitTool.log && webviewSection == ref && refKind == head",
+          "group": "3_manage@2"
+        },
+        {
+          "command": "gitTool.ref.delete",
+          "when": "webviewId == gitTool.log && webviewSection == ref && !isCurrent",
+          "group": "3_manage@3"
+        },
+        {
+          "command": "gitTool.commitFile.diff",
+          "when": "webviewId == gitTool.log && webviewSection == commitFile",
+          "group": "1_diff@1"
+        },
+        {
+          "command": "gitTool.commitFile.compareWithLocal",
+          "when": "webviewId == gitTool.log && webviewSection == commitFile && !deleted",
+          "group": "1_diff@2"
+        },
+        {
+          "command": "gitTool.commitFile.openRevision",
+          "when": "webviewId == gitTool.log && webviewSection == commitFile && !deleted",
+          "group": "2_open@1"
+        },
+        {
+          "command": "gitTool.commitFile.open",
+          "when": "webviewId == gitTool.log && webviewSection == commitFile",
+          "group": "2_open@2"
+        },
+        {
+          "command": "gitTool.commitFile.history",
+          "when": "webviewId == gitTool.log && webviewSection == commitFile",
+          "group": "3_history@1"
+        },
+        {
+          "command": "gitTool.ref.pushTag",
+          "when": "webviewId == gitTool.log && webviewSection == ref && refKind == tag",
+          "group": "3_manage@0"
+        },
+        {
+          "command": "gitTool.ref.newTag",
+          "when": "webviewId == gitTool.log && webviewSection == ref && refKind != tag",
+          "group": "1_checkout@3"
+        },
+        {
+          "command": "gitTool.log.openInBrowser",
+          "when": "webviewId == gitTool.log && webviewSection == commit",
+          "group": "5_remote@1"
+        },
+        {
+          "command": "gitTool.log.openMergeRequest",
+          "when": "webviewId == gitTool.log && webviewSection == commit",
+          "group": "5_remote@2"
+        },
+        {
+          "command": "gitTool.ref.openInBrowser",
+          "when": "webviewId == gitTool.log && webviewSection == ref",
+          "group": "4_remote@1"
+        },
+        {
+          "command": "gitTool.ref.openMergeRequest",
+          "when": "webviewId == gitTool.log && webviewSection == ref && refKind != tag",
+          "group": "4_remote@2"
+        },
+        {
+          "command": "gitTool.ref.createMergeRequest",
+          "when": "webviewId == gitTool.log && webviewSection == ref && refKind != tag",
+          "group": "4_remote@3"
+        },
+        {
+          "command": "gitTool.commitFile.openInBrowser",
+          "when": "webviewId == gitTool.log && webviewSection == commitFile && !deleted",
+          "group": "2_open@3"
+        },
+        {
+          "command": "gitTool.ref.newWorktree",
+          "when": "webviewId == gitTool.log && webviewSection == ref && !isCurrent",
+          "group": "1_checkout@4"
+        },
+        {
+          "command": "gitTool.change.diff",
+          "when": "webviewId == gitTool.commit && webviewSection == change",
+          "group": "1_diff@1"
+        },
+        {
+          "command": "gitTool.change.open",
+          "when": "webviewId == gitTool.commit && webviewSection == change",
+          "group": "1_diff@2"
+        },
+        {
+          "command": "gitTool.change.history",
+          "when": "webviewId == gitTool.commit && webviewSection == change",
+          "group": "1_diff@3"
+        },
+        {
+          "command": "gitTool.change.moveTo",
+          "when": "webviewId == gitTool.commit && webviewSection == change && !untracked && !conflict",
+          "group": "2_list@1"
+        },
+        {
+          "command": "gitTool.change.rollback",
+          "when": "webviewId == gitTool.commit && webviewSection == change && !untracked && !conflict",
+          "group": "3_modify@1"
+        },
+        {
+          "command": "gitTool.change.delete",
+          "when": "webviewId == gitTool.commit && webviewSection == change && untracked",
+          "group": "3_modify@2"
+        },
+        {
+          "command": "gitTool.change.ignore",
+          "when": "webviewId == gitTool.commit && webviewSection == change && untracked",
+          "group": "3_modify@3"
+        },
+        {
+          "command": "gitTool.changelist.setActive",
+          "when": "webviewId == gitTool.commit && webviewSection == changelist && !active",
+          "group": "1_list@1"
+        },
+        {
+          "command": "gitTool.newChangelist",
+          "when": "webviewId == gitTool.commit && webviewSection == changelist",
+          "group": "1_list@2"
+        },
+        {
+          "command": "gitTool.changelist.rename",
+          "when": "webviewId == gitTool.commit && webviewSection == changelist",
+          "group": "1_list@3"
+        },
+        {
+          "command": "gitTool.change.rollback",
+          "when": "webviewId == gitTool.commit && webviewSection == changelist",
+          "group": "2_modify@1"
+        },
+        {
+          "command": "gitTool.changelist.remove",
+          "when": "webviewId == gitTool.commit && webviewSection == changelist",
+          "group": "2_modify@2"
+        },
+        {
+          "command": "gitTool.change.delete",
+          "when": "webviewId == gitTool.commit && webviewSection == unversioned",
+          "group": "2_modify@1"
+        },
+        {
+          "command": "gitTool.change.ignore",
+          "when": "webviewId == gitTool.commit && webviewSection == unversioned",
+          "group": "2_modify@2"
+        },
+        {
+          "command": "gitTool.change.resolve",
+          "when": "webviewId == gitTool.commit && webviewSection == change && conflict",
+          "group": "0_resolve@1"
+        },
+        {
+          "command": "gitTool.change.acceptOurs",
+          "when": "webviewId == gitTool.commit && webviewSection == change && conflict",
+          "group": "0_resolve@2"
+        },
+        {
+          "command": "gitTool.change.acceptTheirs",
+          "when": "webviewId == gitTool.commit && webviewSection == change && conflict",
+          "group": "0_resolve@3"
+        }
+      ],
+      "editor/context": [
+        {
+          "submenu": "gitTool.editorMenu",
+          "group": "gitTool@1",
+          "when": "resourceScheme == file"
+        }
+      ],
+      "gitTool.editorMenu": [
+        {
+          "command": "gitTool.annotate",
+          "when": "!gitTool.annotated",
+          "group": "1_annotate@1"
+        },
+        {
+          "command": "gitTool.closeAnnotations",
+          "when": "gitTool.annotated",
+          "group": "1_annotate@1"
+        },
+        {
+          "command": "gitTool.showFileHistory",
+          "group": "2_history@1"
+        },
+        {
+          "command": "gitTool.showSelectionHistory",
+          "group": "2_history@2"
+        },
+        {
+          "command": "gitTool.commit",
+          "group": "3_vcs@1"
+        },
+        {
+          "command": "gitTool.push",
+          "group": "3_vcs@2"
+        },
+        {
+          "command": "gitTool.branches",
+          "group": "3_vcs@3"
+        },
+        {
+          "command": "gitTool.openFileInBrowser",
+          "group": "4_remote@1"
+        },
+        {
+          "command": "gitTool.copyFileLink",
+          "group": "4_remote@2"
+        }
+      ],
+      "editor/lineNumber/context": [
+        {
+          "command": "gitTool.annotate",
+          "when": "!gitTool.annotated && resourceScheme == file",
+          "group": "gitTool@1"
+        },
+        {
+          "command": "gitTool.closeAnnotations",
+          "when": "gitTool.annotated",
+          "group": "gitTool@1"
+        }
+      ],
+      "editor/title/context": [
+        {
+          "command": "gitTool.showFileHistory",
+          "when": "resourceScheme == file",
+          "group": "gitTool@1"
+        },
+        {
+          "command": "gitTool.openFileInBrowser",
+          "when": "resourceScheme == file",
+          "group": "gitTool@2"
+        }
+      ],
+      "explorer/context": [
+        {
+          "submenu": "gitTool.explorerMenu",
+          "group": "gitTool@1"
+        }
+      ],
+      "gitTool.explorerMenu": [
+        {
+          "command": "gitTool.showFileHistory",
+          "group": "1_history@1"
+        },
+        {
+          "command": "gitTool.openFileInBrowser",
+          "when": "!explorerResourceIsFolder",
+          "group": "2_remote@1"
+        },
+        {
+          "command": "gitTool.copyFileLink",
+          "when": "!explorerResourceIsFolder",
+          "group": "2_remote@2"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "gitTool.operation.resolve",
+          "when": "view == gitTool.commit && gitTool.conflicts",
+          "group": "navigation@0"
+        },
+        {
+          "command": "gitTool.operation.continue",
+          "when": "view == gitTool.commit && gitTool.operation != ''",
+          "group": "navigation@0"
+        },
+        {
+          "command": "gitTool.operation.markResolved",
+          "when": "view == gitTool.commit && gitTool.operation == '' && gitTool.conflicts",
+          "group": "navigation@0"
+        },
+        {
+          "command": "gitTool.operation.skip",
+          "when": "view == gitTool.commit && gitTool.operation =~ /^(rebase|cherry-pick|revert)$/",
+          "group": "navigation@0"
+        },
+        {
+          "command": "gitTool.operation.abort",
+          "when": "view == gitTool.commit && gitTool.operation != ''",
+          "group": "navigation@0"
+        },
+        {
+          "command": "gitTool.stash.push",
+          "when": "view == gitTool.commit",
+          "group": "2_stash@1"
+        },
+        {
+          "command": "gitTool.stash.pop",
+          "when": "view == gitTool.commit",
+          "group": "2_stash@2"
+        },
+        {
+          "command": "gitTool.newTag",
+          "when": "view == gitTool.branches",
+          "group": "navigation@6"
+        },
+        {
+          "command": "gitTool.pushTags",
+          "when": "view == gitTool.branches",
+          "group": "1_more@2"
+        },
+        {
+          "command": "gitTool.change.rollback",
+          "when": "view == gitTool.commit",
+          "group": "navigation@1"
+        },
+        {
+          "command": "gitTool.refresh",
+          "when": "view == gitTool.commit",
+          "group": "navigation@2"
+        },
+        {
+          "command": "gitTool.newChangelist",
+          "when": "view == gitTool.commit",
+          "group": "navigation@3"
+        },
+        {
+          "command": "gitTool.branches",
+          "when": "view == gitTool.commit",
+          "group": "navigation@4"
+        },
+        {
+          "command": "gitTool.fetch",
+          "when": "view == gitTool.branches",
+          "group": "navigation@1"
+        },
+        {
+          "command": "gitTool.update",
+          "when": "view == gitTool.branches",
+          "group": "navigation@2"
+        },
+        {
+          "command": "gitTool.newBranch",
+          "when": "view == gitTool.branches",
+          "group": "navigation@3"
+        },
+        {
+          "command": "gitTool.checkout",
+          "when": "view == gitTool.branches",
+          "group": "navigation@4"
+        },
+        {
+          "command": "gitTool.compareBranches",
+          "when": "view == gitTool.branches",
+          "group": "navigation@5"
+        },
+        {
+          "command": "gitTool.showLog",
+          "when": "view == gitTool.branches",
+          "group": "1_more@0"
+        },
+        {
+          "command": "gitTool.branches.refresh",
+          "when": "view == gitTool.branches",
+          "group": "1_more@1"
+        },
+        {
+          "command": "gitTool.compare.swap",
+          "when": "view == gitTool.compare",
+          "group": "navigation@1"
+        },
+        {
+          "command": "gitTool.compare.refresh",
+          "when": "view == gitTool.compare",
+          "group": "navigation@2"
+        },
+        {
+          "command": "gitTool.compare.close",
+          "when": "view == gitTool.compare",
+          "group": "navigation@3"
+        },
+        {
+          "command": "gitTool.openRepositoryInBrowser",
+          "when": "view == gitTool.branches",
+          "group": "1_more@3"
+        },
+        {
+          "command": "gitTool.mergeRequests.refresh",
+          "when": "view == gitTool.mergeRequests",
+          "group": "navigation@1"
+        },
+        {
+          "command": "gitTool.mergeRequests.sort",
+          "when": "view == gitTool.mergeRequests",
+          "group": "navigation@2"
+        },
+        {
+          "command": "gitTool.ref.createMergeRequest",
+          "when": "view == gitTool.mergeRequests",
+          "group": "navigation@3"
+        },
+        {
+          "command": "gitTool.openMergeRequestsInBrowser",
+          "when": "view == gitTool.mergeRequests",
+          "group": "navigation@4"
+        },
+        {
+          "command": "gitTool.openRepositoryInBrowser",
+          "when": "view == gitTool.mergeRequests",
+          "group": "1_more@1"
+        },
+        {
+          "command": "gitTool.mergeRequests.signIn",
+          "when": "view == gitTool.mergeRequests",
+          "group": "1_more@2"
+        },
+        {
+          "command": "gitTool.mergeRequests.signOut",
+          "when": "view == gitTool.mergeRequests",
+          "group": "1_more@3"
+        },
+        {
+          "command": "gitTool.issues.refresh",
+          "when": "view == gitTool.issues",
+          "group": "navigation@1"
+        },
+        {
+          "command": "gitTool.issues.sort",
+          "when": "view == gitTool.issues",
+          "group": "navigation@2"
+        },
+        {
+          "command": "gitTool.issues.new",
+          "when": "view == gitTool.issues",
+          "group": "navigation@3"
+        },
+        {
+          "command": "gitTool.openIssuesInBrowser",
+          "when": "view == gitTool.issues",
+          "group": "navigation@4"
+        },
+        {
+          "command": "gitTool.openRepositoryInBrowser",
+          "when": "view == gitTool.issues",
+          "group": "1_more@1"
+        },
+        {
+          "command": "gitTool.mergeRequests.signIn",
+          "when": "view == gitTool.issues",
+          "group": "1_more@2"
+        },
+        {
+          "command": "gitTool.mergeRequests.signOut",
+          "when": "view == gitTool.issues",
+          "group": "1_more@3"
+        },
+        {
+          "command": "gitTool.worktrees.new",
+          "when": "view == gitTool.worktrees",
+          "group": "navigation@1"
+        },
+        {
+          "command": "gitTool.worktrees.refresh",
+          "when": "view == gitTool.worktrees",
+          "group": "navigation@2"
+        },
+        {
+          "command": "gitTool.worktrees.switch",
+          "when": "view == gitTool.worktrees",
+          "group": "1_more@1"
+        },
+        {
+          "command": "gitTool.worktrees.prune",
+          "when": "view == gitTool.worktrees",
+          "group": "1_more@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "gitTool.ref.checkout",
+          "when": "view == gitTool.branches && viewItem =~ /^ref-(head|remote|tag)$/",
+          "group": "inline@1"
+        },
+        {
+          "command": "gitTool.ref.compare",
+          "when": "view == gitTool.branches && viewItem =~ /^ref-(head|remote|tag)$/",
+          "group": "inline@2"
+        },
+        {
+          "command": "gitTool.ref.checkout",
+          "when": "view == gitTool.branches && !listMultiSelection && viewItem =~ /^ref-(head|remote|tag)$/",
+          "group": "1_checkout@1"
+        },
+        {
+          "command": "gitTool.ref.newBranch",
+          "when": "view == gitTool.branches && !listMultiSelection && viewItem =~ /^ref-/",
+          "group": "1_checkout@2"
+        },
+        {
+          "command": "gitTool.ref.compare",
+          "when": "view == gitTool.branches && !listMultiSelection && viewItem =~ /^ref-(head|remote|tag)$/",
+          "group": "2_compare@1"
+        },
+        {
+          "command": "gitTool.ref.compareWith",
+          "when": "view == gitTool.branches && !listMultiSelection && viewItem =~ /^ref-/",
+          "group": "2_compare@2"
+        },
+        {
+          "command": "gitTool.ref.showHistory",
+          "when": "view == gitTool.branches && !listMultiSelection && viewItem =~ /^ref-/",
+          "group": "2_compare@3"
+        },
+        {
+          "command": "gitTool.ref.rebase",
+          "when": "view == gitTool.branches && !listMultiSelection && viewItem =~ /^ref-(head|remote|tag)$/",
+          "group": "3_integrate@1"
+        },
+        {
+          "command": "gitTool.ref.merge",
+          "when": "view == gitTool.branches && !listMultiSelection && viewItem =~ /^ref-(head|remote|tag)$/",
+          "group": "3_integrate@2"
+        },
+        {
+          "command": "gitTool.ref.push",
+          "when": "view == gitTool.branches && !listMultiSelection && viewItem =~ /^ref-head/",
+          "group": "4_manage@1"
+        },
+        {
+          "command": "gitTool.ref.rename",
+          "when": "view == gitTool.branches && !listMultiSelection && viewItem =~ /^ref-head/",
+          "group": "4_manage@2"
+        },
+        {
+          "command": "gitTool.ref.delete",
+          "when": "view == gitTool.branches && !listMultiSelection && viewItem =~ /^ref-(head|remote|tag)$/",
+          "group": "4_manage@3"
+        },
+        {
+          "command": "gitTool.refs.compare",
+          "when": "view == gitTool.branches && listMultiSelection && viewItem =~ /^(ref|head)-/",
+          "group": "1_compare@1"
+        },
+        {
+          "command": "gitTool.refs.delete",
+          "when": "view == gitTool.branches && listMultiSelection && viewItem =~ /^ref-/",
+          "group": "2_manage@1"
+        },
+        {
+          "command": "gitTool.compare.diff",
+          "when": "view == gitTool.compare && viewItem =~ /^compareFile/",
+          "group": "inline@1"
+        },
+        {
+          "command": "gitTool.compare.diff",
+          "when": "view == gitTool.compare && viewItem =~ /^compareFile/",
+          "group": "1_diff@1"
+        },
+        {
+          "command": "gitTool.compare.compareWithLocal",
+          "when": "view == gitTool.compare && viewItem == compareFile",
+          "group": "1_diff@2"
+        },
+        {
+          "command": "gitTool.showCommitInLog",
+          "when": "view == gitTool.compare && viewItem == compareCommit",
+          "group": "1_log@1"
+        },
+        {
+          "command": "gitTool.log.copyHash",
+          "when": "view == gitTool.compare && viewItem == compareCommit",
+          "group": "inline@1"
+        },
+        {
+          "command": "gitTool.log.copyHash",
+          "when": "view == gitTool.compare && viewItem == compareCommit",
+          "group": "2_copy@1"
+        },
+        {
+          "command": "gitTool.log.cherryPick",
+          "when": "view == gitTool.compare && viewItem == compareCommit",
+          "group": "3_change@1"
+        },
+        {
+          "command": "gitTool.ref.pushTag",
+          "when": "view == gitTool.branches && viewItem == ref-tag",
+          "group": "inline@3"
+        },
+        {
+          "command": "gitTool.ref.pushTag",
+          "when": "view == gitTool.branches && !listMultiSelection && viewItem == ref-tag",
+          "group": "4_manage@0"
+        },
+        {
+          "command": "gitTool.ref.newTag",
+          "when": "view == gitTool.branches && !listMultiSelection && viewItem =~ /^ref-(head|remote)/",
+          "group": "1_checkout@3"
+        },
+        {
+          "command": "gitTool.ref.openInBrowser",
+          "when": "view == gitTool.branches && !listMultiSelection && viewItem =~ /^ref-/",
+          "group": "5_remote@1"
+        },
+        {
+          "command": "gitTool.ref.openMergeRequest",
+          "when": "view == gitTool.branches && !listMultiSelection && viewItem =~ /^ref-(head|remote)/",
+          "group": "5_remote@2"
+        },
+        {
+          "command": "gitTool.ref.createMergeRequest",
+          "when": "view == gitTool.branches && !listMultiSelection && viewItem =~ /^ref-(head|remote)/",
+          "group": "5_remote@3"
+        },
+        {
+          "command": "gitTool.log.openInBrowser",
+          "when": "view == gitTool.compare && viewItem == compareCommit",
+          "group": "4_remote@1"
+        },
+        {
+          "command": "gitTool.log.openMergeRequest",
+          "when": "view == gitTool.compare && viewItem == compareCommit",
+          "group": "4_remote@2"
+        },
+        {
+          "command": "gitTool.mr.openInBrowser",
+          "when": "view == gitTool.mergeRequests && viewItem =~ /^mr(\\.fork)?$/",
+          "group": "inline@1"
+        },
+        {
+          "command": "gitTool.mr.checkout",
+          "when": "view == gitTool.mergeRequests && viewItem =~ /^mr(\\.fork)?$/",
+          "group": "inline@2"
+        },
+        {
+          "command": "gitTool.mr.openInBrowser",
+          "when": "view == gitTool.mergeRequests && viewItem =~ /^mr(\\.fork)?$/",
+          "group": "1_open@1"
+        },
+        {
+          "command": "gitTool.mr.copyLink",
+          "when": "view == gitTool.mergeRequests && viewItem =~ /^mr(\\.fork)?$/",
+          "group": "1_open@2"
+        },
+        {
+          "command": "gitTool.mr.checkout",
+          "when": "view == gitTool.mergeRequests && viewItem =~ /^mr(\\.fork)?$/",
+          "group": "2_branch@1"
+        },
+        {
+          "command": "gitTool.mr.compare",
+          "when": "view == gitTool.mergeRequests && viewItem =~ /^mr(\\.fork)?$/",
+          "group": "2_branch@2"
+        },
+        {
+          "command": "gitTool.mr.diff",
+          "when": "view == gitTool.mergeRequests && viewItem == mrFile",
+          "group": "1_diff@1"
+        },
+        {
+          "command": "gitTool.issue.openInBrowser",
+          "when": "view == gitTool.issues && viewItem == issue",
+          "group": "inline@1"
+        },
+        {
+          "command": "gitTool.issue.createBranch",
+          "when": "view == gitTool.issues && viewItem == issue",
+          "group": "inline@2"
+        },
+        {
+          "command": "gitTool.issue.openInBrowser",
+          "when": "view == gitTool.issues && viewItem == issue",
+          "group": "1_open@1"
+        },
+        {
+          "command": "gitTool.issue.copyLink",
+          "when": "view == gitTool.issues && viewItem == issue",
+          "group": "1_open@2"
+        },
+        {
+          "command": "gitTool.issue.createBranch",
+          "when": "view == gitTool.issues && viewItem == issue",
+          "group": "2_branch@1"
+        },
+        {
+          "command": "gitTool.worktree.open",
+          "when": "view == gitTool.worktrees && viewItem =~ /^worktree.*-canSwitch/",
+          "group": "inline@1"
+        },
+        {
+          "command": "gitTool.worktree.openNewWindow",
+          "when": "view == gitTool.worktrees && viewItem =~ /^worktree.*-canOpen/",
+          "group": "inline@2"
+        },
+        {
+          "command": "gitTool.worktree.open",
+          "when": "view == gitTool.worktrees && !listMultiSelection && viewItem =~ /^worktree.*-canSwitch/",
+          "group": "1_open@1"
+        },
+        {
+          "command": "gitTool.worktree.openNewWindow",
+          "when": "view == gitTool.worktrees && !listMultiSelection && viewItem =~ /^worktree.*-canOpen/",
+          "group": "1_open@2"
+        },
+        {
+          "command": "gitTool.worktree.addToWorkspace",
+          "when": "view == gitTool.worktrees && !listMultiSelection && viewItem =~ /^worktree.*-canAdd/",
+          "group": "1_open@3"
+        },
+        {
+          "command": "gitTool.worktree.showInLog",
+          "when": "view == gitTool.worktrees && !listMultiSelection && viewItem =~ /^worktree/",
+          "group": "2_show@1"
+        },
+        {
+          "command": "gitTool.worktree.copyPath",
+          "when": "view == gitTool.worktrees && !listMultiSelection && viewItem =~ /^worktree/",
+          "group": "2_show@2"
+        },
+        {
+          "command": "gitTool.worktree.delete",
+          "when": "view == gitTool.worktrees && viewItem =~ /^worktree.*-canDelete/",
+          "group": "3_manage@1"
+        },
+        {
+          "command": "gitTool.ref.newWorktree",
+          "when": "view == gitTool.branches && !listMultiSelection && viewItem =~ /^ref-(head|remote|tag)$/",
+          "group": "1_checkout@4"
+        },
+        {
+          "command": "gitTool.ref.newBranch",
+          "when": "view == gitTool.branches && !listMultiSelection && viewItem =~ /^head-/",
+          "group": "1_checkout@2"
+        },
+        {
+          "command": "gitTool.ref.newTag",
+          "when": "view == gitTool.branches && !listMultiSelection && viewItem =~ /^head-/",
+          "group": "1_checkout@3"
+        },
+        {
+          "command": "gitTool.ref.compareWith",
+          "when": "view == gitTool.branches && !listMultiSelection && viewItem =~ /^head-/",
+          "group": "2_compare@2"
+        },
+        {
+          "command": "gitTool.ref.showHistory",
+          "when": "view == gitTool.branches && !listMultiSelection && viewItem =~ /^head-/",
+          "group": "2_compare@3"
+        },
+        {
+          "command": "gitTool.ref.push",
+          "when": "view == gitTool.branches && !listMultiSelection && viewItem == head-branch",
+          "group": "4_manage@1"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "gitTool.change.rollback",
+        "key": "ctrl+alt+z",
+        "mac": "cmd+alt+z",
+        "when": "focusedView == gitTool.commit"
+      },
+      {
+        "command": "gitTool.worktree.delete",
+        "key": "delete",
+        "mac": "cmd+backspace",
+        "when": "focusedView == gitTool.worktrees"
+      }
+    ],
+    "configuration": {
+      "title": "Git Tool Window",
+      "properties": {
+        "gitTool.showBranchInStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the current branch on the right of the status bar; click it for the branches popup."
+        },
+        "gitTool.updateMethod": {
+          "type": "string",
+          "enum": [
+            "merge",
+            "rebase"
+          ],
+          "default": "merge",
+          "enumDescriptions": [
+            "git pull --no-rebase",
+            "git pull --rebase"
+          ],
+          "description": "How Pull integrates the upstream branch (local changes are stashed and restored automatically)."
+        },
+        "gitTool.hostingProviders": {
+          "type": "object",
+          "default": {},
+          "additionalProperties": {
+            "type": "string",
+            "enum": [
+              "gitlab",
+              "github",
+              "bitbucket"
+            ]
+          },
+          "markdownDescription": "Hosting service of a remote host, for **Open in Browser** and the **Merge Requests** and **Issues** views, e.g. `{\"git.example.com\": \"github\"}` for a GitHub Enterprise server. Without an entry, `github.com` and `bitbucket.org` are recognised, and any other host is taken as a GitLab instance."
+        }
+      }
+    },
+    "viewsWelcome": [
+      {
+        "view": "gitTool.mergeRequests",
+        "contents": "Sign in to list the open merge requests (GitLab) or pull requests (GitHub) of this repository.\n[Sign In / Set Access Token…](command:gitTool.mergeRequests.signIn)\nIf the glab or gh command-line tool is installed, logging in with `glab auth login` or `gh auth login` also works: then refresh the view.",
+        "when": "gitTool.mergeRequests.needsAuth"
+      },
+      {
+        "view": "gitTool.issues",
+        "contents": "Sign in to list the open issues of this repository (GitLab or GitHub).\n[Sign In / Set Access Token…](command:gitTool.mergeRequests.signIn)\nIf the glab or gh command-line tool is installed, logging in with `glab auth login` or `gh auth login` also works: then refresh the view.",
+        "when": "gitTool.issues.needsAuth"
+      }
+    ]
+  },
+  "scripts": {
+    "build": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "typecheck": "tsc -p . --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "test:browser": "npm run build && node test/browser/run.mjs",
+    "test:vscode": "npm run build && tsc -p test/vscode && node out/test/vscode/runTest.js",
+    "package": "npm run notices && npm run build -- --production && vsce package --no-dependencies",
+    "notices": "node scripts/notices.mjs"
+  },
+  "dependencies": {
+    "@vscode/codicons": "0.0.36"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "22.20.5",
+    "@types/vscode": "1.90.0",
+    "@vscode/test-electron": "3.1.0",
+    "@vscode/vsce": "4.1.0",
+    "esbuild": "0.28.2",
+    "eslint": "10.14.0",
+    "globals": "17.14.0",
+    "playwright-core": "1.65.0",
+    "prettier": "3.9.10",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.72.1",
+    "vitest": "5.1.0"
+  }
+}

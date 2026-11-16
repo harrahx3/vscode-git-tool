@@ -1,0 +1,15 @@
+**
+!dist/extension.js
+!dist/log.js
+!dist/log.css
+!dist/commit.js
+!dist/commit.css
+!dist/codicon.css
+!dist/codicon.ttf
+!media/*.svg
+!package.json
+!README.md
+!CHANGELOG.md
+!LICENSE
+!ThirdPartyNotices.txt
+!assets/marketplace-icon.png

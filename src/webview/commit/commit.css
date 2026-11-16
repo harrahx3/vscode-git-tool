@@ -1,0 +1,256 @@
+@import "../common/base.css";
+
+body {
+  background: var(--vscode-sideBar-background, var(--vscode-editor-background));
+}
+
+#app {
+  height: 100vh;
+}
+
+.commit-box {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 8px 8px 20px;
+}
+.message {
+  height: auto;
+  min-height: 64px;
+  resize: vertical;
+  padding: 4px 6px;
+  font-family: var(--vscode-font-family);
+  user-select: text;
+}
+.message:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+.options {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.amend {
+  display: inline-flex;
+  align-items: center;
+  color: var(--vscode-foreground);
+}
+.summary {
+  margin-left: auto;
+  color: var(--dim);
+  white-space: nowrap;
+}
+.buttons {
+  display: flex;
+  gap: 6px;
+}
+.buttons button {
+  flex: 1;
+  border: 1px solid var(--vscode-button-border, transparent);
+  border-radius: 2px;
+  padding: 4px 8px;
+  font: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.buttons button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.primary {
+  background: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+}
+.primary:not(:disabled):hover {
+  background: var(--vscode-button-hoverBackground);
+}
+.secondary {
+  flex: none !important;
+  background: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+}
+.secondary:not(:disabled):hover {
+  background: var(--vscode-button-secondaryHoverBackground);
+}
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 16px;
+}
+.branch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.busy {
+  margin-left: auto;
+  color: var(--dim);
+}
+
+/* ---- Changed files ------------------------------------------------------------------------ */
+
+.changes {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  outline: none;
+  padding-bottom: 8px;
+  border-top: 1px solid var(--border);
+}
+.notice {
+  padding: 6px 8px 6px 20px;
+  color: var(--dim);
+  white-space: normal;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: var(--row-h);
+  padding: 0 8px 0 4px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.row.file {
+  padding-left: 20px;
+}
+.row:hover {
+  background: var(--hover-bg);
+}
+.row.selected {
+  background: var(--sel-bg);
+  color: var(--sel-fg);
+}
+.changes:focus .row.selected {
+  background: var(--sel-focus-bg);
+  color: var(--sel-focus-fg);
+}
+.changes:focus .row.focused {
+  outline: 1px solid var(--vscode-list-focusOutline, var(--vscode-focusBorder));
+  outline-offset: -1px;
+}
+.twisty {
+  display: inline-flex;
+  width: 16px;
+  flex: none;
+  justify-content: center;
+}
+.tick {
+  margin: 0 2px 0 0;
+  flex: none;
+  cursor: pointer;
+}
+.tick-space {
+  display: inline-block;
+  width: 15px;
+  flex: none;
+}
+.row .name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: none;
+  max-width: 70%;
+}
+.row.group .name {
+  font-weight: 600;
+}
+.row .dim {
+  color: var(--dim);
+  font-size: 0.92em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+.row .status {
+  flex: none;
+  width: 14px;
+  text-align: center;
+  font-size: 0.92em;
+}
+.row-buttons {
+  display: none;
+  flex: none;
+  gap: 0;
+}
+.row:hover .row-buttons,
+.row.focused .row-buttons {
+  display: inline-flex;
+}
+.row-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--vscode-icon-foreground, var(--vscode-foreground));
+  cursor: pointer;
+}
+.row-button:hover {
+  background: var(--vscode-toolbar-hoverBackground, rgba(128, 128, 128, 0.2));
+}
+.st-modified .name,
+.st-modified .status {
+  color: var(--st-modified);
+}
+.st-added .name,
+.st-added .status {
+  color: var(--st-added);
+}
+.st-deleted .name {
+  color: var(--st-deleted);
+  text-decoration: line-through;
+}
+.st-deleted .status {
+  color: var(--st-deleted);
+}
+.st-renamed .name,
+.st-renamed .status {
+  color: var(--st-renamed);
+}
+.st-untracked .name,
+.st-untracked .status {
+  color: var(--st-untracked);
+}
+.st-conflict .name,
+.st-conflict .status,
+.group.conflicts .codicon-warning {
+  color: var(--st-conflict);
+}
+.row.selected .name,
+.row.selected .status {
+  color: inherit;
+}
+.dragging,
+.dragging .row {
+  cursor: grabbing;
+}
+.row.drop-target {
+  outline: 1px dashed var(--vscode-focusBorder);
+  outline-offset: -1px;
+  background: var(--vscode-list-dropBackground, var(--hover-bg));
+}
+.drag-ghost {
+  position: fixed;
+  z-index: 10;
+  pointer-events: none;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: var(--vscode-badge-background);
+  color: var(--vscode-badge-foreground);
+  white-space: nowrap;
+}
