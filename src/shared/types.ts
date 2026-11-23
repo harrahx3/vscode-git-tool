@@ -23,6 +23,8 @@ export interface Ref {
   /** Ahead/behind counts of a local branch against its upstream. */
   ahead?: number;
   behind?: number;
+  /** Tags only: false when the tag is known to exist only locally (not on the remote). */
+  pushed?: boolean;
 }
 
 export interface HeadInfo {

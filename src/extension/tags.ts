@@ -1,9 +1,10 @@
-// Tags: create (annotated or lightweight, name suggested from the previous tags), push one or
+// Tags: create locally (annotated or lightweight, name suggested from the previous tags), push one or
 // all, delete locally and on the remote. Pushing runs the repository's pre-push hook, e.g. the
 // tag naming check of the KNIME repositories, whose output is shown if it refuses.
 import * as vscode from "vscode";
 import { refNameProblem, suggestTag } from "../shared/refNames";
 import { defaultRemote } from "./git/operations";
+import { forgetRemoteTags } from "./git/remoteTags";
 import type { Git } from "./git/runner";
 import { withProgress } from "./git/ui";
 
@@ -45,22 +46,14 @@ export async function newTag(git: Git, target: string, label: string): Promise<b
     ? ["tag", "-a", name, "-m", message.trim(), target]
     : ["tag", name, target];
   if (!(await withProgress(`Tag ${name}`, () => git.write(args)))) return false;
-  const remoteList = await remotes(git);
-  if (!remoteList.length) {
-    vscode.window.setStatusBarMessage(`$(tag) Created tag ${name}`, 4000);
-    return true;
-  }
-  const remote = remoteList.includes("origin") ? "origin" : remoteList[0];
-  const push = await vscode.window.showInformationMessage(
-    `Tag ${name} created on ${label}.`,
-    `Push to ${remote}`,
-  );
-  if (push) await pushTag(git, name, remote);
+  // The tag stays local until the user pushes it (context menu: Push Tag).
+  vscode.window.setStatusBarMessage(`$(tag) Created local tag ${name}`, 4000);
   return true;
 }
 
 export async function pushTag(git: Git, name: string, remote?: string): Promise<boolean> {
   const to = remote ?? (await defaultRemote(git));
+  forgetRemoteTags(git);
   return withProgress(`Push tag ${name}`, () =>
     git.network(["push", to, `refs/tags/${name}:refs/tags/${name}`]),
   );
@@ -68,6 +61,7 @@ export async function pushTag(git: Git, name: string, remote?: string): Promise<
 
 export async function pushAllTags(git: Git): Promise<boolean> {
   const remote = await defaultRemote(git);
+  forgetRemoteTags(git);
   return withProgress(`Push tags to ${remote}`, () => git.write(["push", remote, "--tags"]));
 }
 
@@ -88,6 +82,7 @@ export async function deleteTag(git: Git, name: string): Promise<boolean> {
     ...(both ? [both] : []),
   );
   if (!choice) return false;
+  forgetRemoteTags(git);
   if (!(await withProgress(`Delete tag ${name}`, () => git.write(["tag", "-d", name]))))
     return false;
   if (choice === both && remote)

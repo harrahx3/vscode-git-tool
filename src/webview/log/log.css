@@ -262,7 +262,8 @@
   font-weight: 600;
   background: color-mix(in srgb, var(--lane, var(--dim)) 35%, transparent);
 }
-.ref-remote {
+.ref-remote,
+.ref-tag.unpushed {
   border-style: dashed;
 }
 .ref-tag {

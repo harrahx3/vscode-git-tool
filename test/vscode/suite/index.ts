@@ -393,7 +393,7 @@ const tests: [string, () => Promise<void>][] = [
     },
   ],
   [
-    "New Tag suggests the next version, creates an annotated tag and pushes it",
+    "New Tag suggests the next version and creates a local annotated tag; Push Tag publishes it",
     async () => {
       git("tag", "v1.2.3", "HEAD~1");
       let suggested = "";
@@ -404,13 +404,16 @@ const tests: [string, () => Promise<void>][] = [
             if (title.includes("(1/2)")) suggested = o.value ?? "";
             return title.includes("(1/2)") ? o.value : "Release v1.2.4";
           },
-          showInformationMessage: (m) =>
-            m.startsWith("Tag v1.2.4 created") ? "Push to origin" : undefined,
         },
         () => vscode.commands.executeCommand("gitTool.newTag"),
       );
       assert.strictEqual(suggested, "v1.2.4");
       assert.strictEqual(git("cat-file", "-t", "v1.2.4"), "tag");
+      assert.strictEqual(git("ls-remote", "--tags", "origin", "v1.2.4"), "");
+      await vscode.commands.executeCommand("gitTool.ref.pushTag", {
+        refName: "v1.2.4",
+        refKind: "tag",
+      });
       assert.match(git("ls-remote", "--tags", "origin", "v1.2.4"), /refs\/tags\/v1\.2\.4/);
     },
   ],

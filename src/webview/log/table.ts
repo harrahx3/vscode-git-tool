@@ -20,6 +20,8 @@ interface Label {
   current: boolean;
   /** Ref the label's context menu acts on. */
   ref?: Ref;
+  /** A tag that exists only locally. */
+  unpushed?: boolean;
 }
 
 /** PyCharm merges a local branch and its remote twin on the same commit into "origin & main". */
@@ -41,7 +43,13 @@ export function labelsFor(refs: Ref[], head: HeadInfo): Label[] {
   for (const r of remotes)
     if (!usedRemotes.has(r)) labels.push({ text: r.name, kind: "remote", current: false, ref: r });
   for (const r of refs.filter((x) => x.kind === "tag"))
-    labels.push({ text: r.name, kind: "tag", current: false, ref: r });
+    labels.push({
+      text: r.name,
+      kind: "tag",
+      current: false,
+      ref: r,
+      unpushed: r.pushed === false,
+    });
   // Current branch first.
   return labels.sort((a, b) => Number(b.current) - Number(a.current));
 }
@@ -236,18 +244,21 @@ export class CommitTable {
       const labels = h("span.labels");
       for (const l of labelsFor(refs, this.head)) {
         const color = g && l.kind !== "tag" ? laneColor(g.color) : undefined;
-        const label = h(`span.ref.ref-${l.kind}${l.current ? ".current" : ""}` as "span", {
-          title: l.text,
-          style: color ? `--lane:${color}` : undefined,
-          "data-vscode-context": l.ref
-            ? menuContext({
-                webviewSection: "ref",
-                refName: l.ref.name,
-                refKind: l.ref.kind,
-                isCurrent: l.current,
-              })
-            : undefined,
-        });
+        const label = h(
+          `span.ref.ref-${l.kind}${l.current ? ".current" : ""}${l.unpushed ? ".unpushed" : ""}` as "span",
+          {
+            title: l.unpushed ? `${l.text} (local only, not pushed)` : l.text,
+            style: color ? `--lane:${color}` : undefined,
+            "data-vscode-context": l.ref
+              ? menuContext({
+                  webviewSection: "ref",
+                  refName: l.ref.name,
+                  refKind: l.ref.kind,
+                  isCurrent: l.current,
+                })
+              : undefined,
+          },
+        );
         label.append(
           h(`span.codicon.codicon-${l.kind === "tag" ? "tag" : "git-branch"}` as "span"),
           l.text,

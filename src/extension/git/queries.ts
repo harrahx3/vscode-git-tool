@@ -18,6 +18,7 @@ import type {
   Ref,
   WorkingChange,
 } from "../../shared/types";
+import { remoteTags } from "./remoteTags";
 import type { Git } from "./runner";
 
 export async function head(git: Git): Promise<HeadInfo> {
@@ -36,7 +37,12 @@ export async function refs(git: Git): Promise<Ref[]> {
     "refs/remotes",
     "refs/tags",
   ]);
-  return parseRefs(out);
+  const all = parseRefs(out);
+  if (all.some((r) => r.kind === "tag")) {
+    const remote = await remoteTags(git);
+    if (remote) for (const r of all) if (r.kind === "tag") r.pushed = remote.has(r.name);
+  }
+  return all;
 }
 
 /** Whether the filter keeps parent links meaningful (graph can be drawn). */

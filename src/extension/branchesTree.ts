@@ -178,7 +178,10 @@ export class BranchesTree implements vscode.TreeDataProvider<BranchNode>, vscode
     const { ref, isCurrent } = node;
     const item = new vscode.TreeItem(node.leaf, vscode.TreeItemCollapsibleState.None);
     item.id = `ref:${ref.kind}:${ref.name}`;
-    item.description = [isCurrent ? "current" : "", tracking(ref)].filter(Boolean).join(" · ");
+    const unpushed = ref.kind === "tag" && ref.pushed === false;
+    item.description = [isCurrent ? "current" : "", tracking(ref), unpushed ? "local only" : ""]
+      .filter(Boolean)
+      .join(" · ");
     item.iconPath = new vscode.ThemeIcon(
       ref.kind === "tag"
         ? "tag"
