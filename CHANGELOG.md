@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0 — 2026-11-23
+
+- **New Tag** now creates a local tag only and no longer offers to push it. Push it later with
+  _Push Tag_ in the right-click menu.
+- Tags that exist only locally are drawn with a dashed border in the Log (tooltip: local only)
+  and marked _local only_ in the Branches view. This relies on `git ls-remote`, cached for a
+  minute; when the remote cannot be reached, no tag is flagged.
+
 ## 1.0.1 — 2026-11-16
 
 - The changelog of 1.0.0 now lists every change of that release; the first 1.0.0 package

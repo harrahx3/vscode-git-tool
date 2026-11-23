@@ -2,7 +2,7 @@
   "name": "vscode-git-tool",
   "displayName": "Git Changelists & Log",
   "description": "Commit graph, branches, worktrees, changelists with per-file checkboxes, annotate and history, and GitLab/GitHub merge requests and issues, in Git tool windows inspired by PyCharm.",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "publisher": "harrahx3",
   "author": {
     "name": "harrahx3"
