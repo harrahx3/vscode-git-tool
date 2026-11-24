@@ -2004,6 +2004,19 @@
           "default": true,
           "description": "Show the current branch on the right of the status bar; click it for the branches popup."
         },
+        "gitTool.workspaceScope": {
+          "type": "string",
+          "enum": [
+            "active",
+            "all"
+          ],
+          "default": "active",
+          "enumDescriptions": [
+            "Only the active repository: the one of the file being edited, or the one picked in the Log.",
+            "Every repository of the workspace, one section per repository."
+          ],
+          "markdownDescription": "Which repositories of a workspace with several of them the **Commit**, **Branches**, **Merge Requests**, **Issues** and **Worktrees** views show. The **Log** always shows one repository at a time (pick it in its toolbar)."
+        },
         "gitTool.updateMethod": {
           "type": "string",
           "enum": [

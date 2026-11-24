@@ -90,8 +90,17 @@ export async function activate(context: vscode.ExtensionContext): Promise<TestAp
     }),
   );
 
+  // A command run on a node of a view that lists several repositories acts on that node's one.
   const reg: Register = (id, fn) =>
-    context.subscriptions.push(vscode.commands.registerCommand(id, fn));
+    context.subscriptions.push(
+      vscode.commands.registerCommand(id, (...args: never[]) => {
+        const node = (args as unknown[]).find(
+          (a) => typeof (a as { root?: unknown } | undefined)?.root === "string",
+        ) as { root: string } | undefined;
+        if (node) repos.setCurrentQuiet(node.root);
+        return fn(...args);
+      }),
+    );
   registerCommands(reg, repos, log, commitView, annotations);
   registerCommitCommands(reg, repos, changes);
   registerBranchCommands(reg, repos, log, branches, compare);

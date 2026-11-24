@@ -59,13 +59,14 @@ export class CommitView implements vscode.WebviewViewProvider, vscode.Disposable
     // The change count on the activity-bar icon is set in extension.ts, not here.
     if (this.view) this.view.description = c.where() || undefined;
     const state: CommitViewState = {
-      repoName: c.root ? path.basename(c.root) : undefined,
-      branch: c.branch,
-      included: c.includedPaths().length,
+      repoName: c.root && !c.multi ? path.basename(c.root) : undefined,
+      branch: c.multi ? undefined : c.branch,
+      included: c.includedCount,
       total: c.total,
       lastMessage: c.lastMessage,
       ahead: c.ahead,
       lists: c.lists(),
+      repos: c.headers(),
       notice: c.notice(),
     };
     this.post({ type: "state", state });
@@ -81,13 +82,13 @@ export class CommitView implements vscode.WebviewViewProvider, vscode.Disposable
         await this.commit(m.message, m.amend, m.push);
         break;
       case "include":
-        await this.changes.include(m.paths, m.on);
+        await this.changes.include(m.files, m.on);
         break;
       case "selection":
         this.changes.setSelection(m.keys);
         break;
       case "move":
-        await this.changes.move(m.paths, m.list);
+        await this.changes.move(m.root, m.paths, m.list);
         break;
       case "status":
         this.drawn = { files: m.files, notice: m.notice };
@@ -100,34 +101,62 @@ export class CommitView implements vscode.WebviewViewProvider, vscode.Disposable
   }
 
   private async commit(message: string, amend: boolean, andPush: boolean): Promise<void> {
-    const root = this.changes.root;
-    if (!root) return;
-    const paths = this.changes.includedPaths();
-    const git = this.repos.git(root);
+    // Each repository with ticked files gets a commit with this message. An amend (which may
+    // have no ticked file) rewrites one commit: the repository with ticks, else the current one.
+    let batches = this.changes.includedByRoot();
+    if (amend && batches.length > 1) {
+      this.post({
+        type: "error",
+        message: "Amend works on one repository: untick the files of the others.",
+      });
+      return;
+    }
+    const current = this.changes.root;
+    if (!batches.length && amend && current) batches = [{ root: current, paths: [] }];
+    if (!batches.length) return;
     this.post({ type: "busy", busy: true, label: "Committing…" });
-    // Status again: the list may be a few hundred milliseconds behind the disk. The follow-up
-    // is part of the task, so a retry from an error notification (hook fixed…) also does it.
-    const ok = await withProgress(amend ? "Amend commit" : "Commit", async () => {
-      const hookOutput = await commitFiles(git, await status(git), paths, message, amend);
-      await this.committed(paths.length, hookOutput);
-    });
-    if (ok && andPush) {
-      this.post({ type: "busy", busy: true, label: "Pushing…" });
-      await withProgress("Push", () => push(git));
+    const committed: string[] = [];
+    let failed = false;
+    for (const { root, paths } of batches) {
+      const git = this.repos.git(root);
+      // Status again: the list may be a few hundred milliseconds behind the disk. The follow-up
+      // is part of the task, so a retry from an error notification (hook fixed…) also does it.
+      const ok = await withProgress(amend ? "Amend commit" : "Commit", async () => {
+        const hookOutput = await commitFiles(git, await status(git), paths, message, amend);
+        await this.committed(root, paths.length, hookOutput, batches.length === 1);
+      });
+      if (!ok) {
+        failed = true;
+        break;
+      }
+      committed.push(root);
+    }
+    // The message box is cleared once, when every repository is done.
+    if (!failed) this.post({ type: "committed" });
+    if (andPush) {
+      for (const root of committed) {
+        this.post({ type: "busy", busy: true, label: "Pushing…" });
+        if (!(await withProgress("Push", () => push(this.repos.git(root))))) break;
+      }
     }
     this.post({ type: "busy", busy: false });
-    this.repos.fire(root);
+    for (const root of committed) this.repos.fire(root);
     await this.changes.refresh();
   }
 
-  private async committed(count: number, hookOutput: string): Promise<void> {
+  private async committed(
+    root: string,
+    count: number,
+    hookOutput: string,
+    announce: boolean,
+  ): Promise<void> {
     clearHookProblems();
-    this.post({ type: "committed" });
-    await this.changes.resetChoices();
+    await this.changes.resetChoices(root);
     // What a pre-commit hook printed while letting the commit through ("pre-commit: 5 passed").
     const summary = hookOutput.trim() ? hookSummary(hookOutput) : undefined;
+    const where = announce ? "" : ` in ${path.basename(root)}`;
     vscode.window.setStatusBarMessage(
-      `$(check) Committed ${count} file${count === 1 ? "" : "s"}${summary ? ` · ${summary}` : ""}`,
+      `$(check) Committed ${count} file${count === 1 ? "" : "s"}${where}${summary ? ` · ${summary}` : ""}`,
       6000,
     );
   }

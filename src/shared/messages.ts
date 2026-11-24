@@ -69,12 +69,30 @@ export interface ChangeRow {
 
 /** A group of the list: a changelist, the unversioned files or the merge conflicts. */
 export interface ChangeListView {
-  /** Stable key, also used in the selection: `list:<name>`, `unversioned` or `conflicts`. */
+  /** Repository of the group (several are listed in workspace scope "all"). */
+  root?: string;
+  /** Stable key, also used in the selection (see `groupKey` in changeGroups.ts). */
   key: string;
   name: string;
   kind: "changelist" | "unversioned" | "conflicts";
   active: boolean;
   files: ChangeRow[];
+}
+
+/** Header above the groups of one repository, when the Commit view lists several. */
+export interface RepoHeader {
+  root: string;
+  name: string;
+  branch?: string;
+  ahead?: number;
+  /** Operation in progress, conflicts, error. */
+  notice?: string;
+}
+
+/** A file of a repository, as the webview names it in its messages. */
+export interface FileRef {
+  root?: string;
+  path: string;
 }
 
 /** What the Commit view shows: the message box state and the changed files below it. */
@@ -89,6 +107,8 @@ export interface CommitViewState {
   /** Unpushed commits on the current branch. */
   ahead?: number;
   lists: ChangeListView[];
+  /** One entry per repository, only when the view lists several. */
+  repos?: RepoHeader[];
   /** Shown above the list: no repository, no changes, an operation in progress… */
   notice?: string;
 }
@@ -108,15 +128,16 @@ export type CommitRowCommand = (typeof COMMIT_ROW_COMMANDS)[number];
 export type RowContext =
   | {
       webviewSection: "change";
+      root?: string;
       path: string;
       /** Name of the row's group. */
       list: string;
       untracked: boolean;
       conflict: boolean;
     }
-  | { webviewSection: "changelist"; list: string; active: boolean; empty: boolean }
-  | { webviewSection: "unversioned" }
-  | { webviewSection: "conflicts" };
+  | { webviewSection: "changelist"; root?: string; list: string; active: boolean; empty: boolean }
+  | { webviewSection: "unversioned"; root?: string }
+  | { webviewSection: "conflicts"; root?: string };
 
 export type CommitToWebview =
   | { type: "state"; state: CommitViewState }
@@ -128,11 +149,11 @@ export type CommitFromWebview =
   | { type: "ready" }
   | { type: "commit"; message: string; amend: boolean; push: boolean }
   /** Ticks or unticks files for the next commit. */
-  | { type: "include"; paths: string[]; on: boolean }
-  /** Selected rows (file `file:<path>` and group keys): menu commands act on them. */
+  | { type: "include"; files: FileRef[]; on: boolean }
+  /** Selected rows (file and group keys, see changeGroups.ts): menu commands act on them. */
   | { type: "selection"; keys: string[] }
   /** Files dropped on a changelist. */
-  | { type: "move"; paths: string[]; list: string }
+  | { type: "move"; root?: string; paths: string[]; list: string }
   | { type: "run"; command: CommitRowCommand; target: RowContext }
   /** What the list drew (for the integration tests): file paths and the notice. */
   | { type: "status"; files: string[]; notice?: string };

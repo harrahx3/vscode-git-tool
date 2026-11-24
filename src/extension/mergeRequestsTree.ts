@@ -28,26 +28,37 @@ export interface MergeRequestChanges {
   files: ChangedFile[];
 }
 
+/** `root`: the repository of the node, for commands run on it (see `reg` in extension.ts). */
 export type MrNode =
-  | { kind: "mr"; mr: MergeRequest }
-  | { kind: "file"; mr: MergeRequest; file: ChangedFile; base: string; head: string }
-  | { kind: "note"; id: string; text: string; error?: boolean };
+  | { kind: "repo"; root: string; name: string }
+  | { kind: "mr"; root: string; mr: MergeRequest }
+  | { kind: "file"; root: string; mr: MergeRequest; file: ChangedFile; base: string; head: string }
+  | { kind: "note"; root: string; id: string; text: string; error?: boolean; signIn?: boolean };
+
+/** What one repository's remote returned. */
+interface RepoMrs {
+  hosting?: Hosting;
+  mrs: MergeRequest[];
+  branch?: string;
+  /** The list was loaded (else a message or the sign-in buttons are shown). */
+  loaded: boolean;
+  message?: string;
+  needsAuth?: boolean;
+}
 
 const when = (iso: string) => (iso ? new Date(iso).toLocaleString() : "");
 
 export class MergeRequestsTree implements vscode.TreeDataProvider<MrNode>, vscode.Disposable {
   readonly view: vscode.TreeView<MrNode>;
   hosting?: Hosting;
-  private root?: string;
-  private mrs: MergeRequest[] = [];
-  private branch?: string;
-  /** The list was loaded (else a message or the sign-in buttons are shown). */
-  private loaded = false;
+  private scopeKey?: string;
+  private shown: string[] = [];
+  private states = new Map<string, RepoMrs>();
   private readonly sort: SortSetting;
   /** The list needs reloading next time the view is shown. */
   private stale = true;
   private generation = 0;
-  private readonly changes = new Map<number, Promise<MergeRequestChanges>>();
+  private readonly changes = new Map<string, Promise<MergeRequestChanges>>();
   private readonly fetchedTargets = new Set<string>();
   /** git fetch runs one at a time (FETCH_HEAD and ref locks). */
   private fetchQueue: Promise<unknown> = Promise.resolve();
@@ -81,17 +92,23 @@ export class MergeRequestsTree implements vscode.TreeDataProvider<MrNode>, vscod
   }
 
   private async onRepositoryChange(): Promise<void> {
-    const root = this.repos.currentRoot();
-    if (root !== this.root) {
+    if (this.repos.scopeKey() !== this.scopeKey) {
       this.stale = true;
       if (this.view.visible) void this.refresh();
       return;
     }
-    if (!root) return;
-    const branch = (await head(this.repos.git(root))).branch;
-    if (branch === this.branch) return;
-    this.branch = branch;
-    this.changed.fire(undefined);
+    let moved = false;
+    await Promise.all(
+      this.shown.map(async (root) => {
+        const state = this.states.get(root);
+        if (!state?.loaded) return;
+        const branch = (await head(this.repos.git(root))).branch;
+        if (branch === state.branch) return;
+        state.branch = branch;
+        moved = true;
+      }),
+    );
+    if (moved) this.changed.fire(undefined);
   }
 
   /** The current sort order (Sort By…). */
@@ -111,42 +128,45 @@ export class MergeRequestsTree implements vscode.TreeDataProvider<MrNode>, vscod
       .join(" · ");
   }
 
-  /** Reloads the list from the hosting service. */
+  /** Reloads the lists from the hosting services. */
   async refresh(): Promise<void> {
     const generation = ++this.generation;
     this.stale = false;
     this.changes.clear();
     this.fetchedTargets.clear();
-    const root = this.repos.currentRoot();
-    this.root = root;
-    const show = (message: string | undefined, needsAuth = false) => {
-      if (generation !== this.generation) return;
-      this.view.message = message;
-      void vscode.commands.executeCommand("setContext", NEEDS_AUTH, needsAuth);
-      this.changed.fire(undefined);
-    };
-    this.mrs = [];
-    this.loaded = false;
-    if (!root) return show("No Git repository is open.");
+    const shown = this.repos.scopedRoots();
+    this.scopeKey = this.repos.scopeKey();
+    const states = new Map<string, RepoMrs>();
+    await Promise.all(shown.map(async (root) => states.set(root, await this.load(root))));
+    if (generation !== this.generation) return;
+    this.shown = shown;
+    this.states = states;
+    // One repository: its message and sign-in buttons go on the view itself.
+    const only = shown.length === 1 ? states.get(shown[0]) : undefined;
+    this.hosting = only?.hosting;
+    this.view.title = `${mergeRequestWord(only?.hosting?.provider ?? providerOf(states))}s`;
+    this.view.message = shown.length ? only?.message : "No Git repository is open.";
+    void vscode.commands.executeCommand("setContext", NEEDS_AUTH, !!only?.needsAuth);
+    this.showDescription();
+    this.changed.fire(undefined);
+  }
+
+  private async load(root: string): Promise<RepoMrs> {
     const git = this.repos.git(root);
     const found = await findHosting(git);
-    if (!("hosting" in found)) {
-      this.hosting = undefined;
-      return show(found.problem);
-    }
-    const h = (this.hosting = found.hosting);
-    this.view.title = `${mergeRequestWord(h.provider)}s`;
-    this.showDescription();
+    if (!("hosting" in found)) return { mrs: [], loaded: false, message: found.problem };
+    const hosting = found.hosting;
     try {
-      const [mrs, current] = await Promise.all([openMergeRequests(this.api, h), head(git)]);
-      if (generation !== this.generation) return;
-      this.mrs = mrs;
-      this.branch = current.branch;
-      this.loaded = true;
-      show(undefined);
+      const [mrs, current] = await Promise.all([openMergeRequests(this.api, hosting), head(git)]);
+      return { hosting, mrs, branch: current.branch, loaded: true };
     } catch (e) {
-      if (e instanceof AuthRequired) return show(undefined, true);
-      show(e instanceof Error ? e.message : String(e));
+      if (e instanceof AuthRequired) return { hosting, mrs: [], loaded: false, needsAuth: true };
+      return {
+        hosting,
+        mrs: [],
+        loaded: false,
+        message: e instanceof Error ? e.message : String(e),
+      };
     }
   }
 
@@ -154,7 +174,9 @@ export class MergeRequestsTree implements vscode.TreeDataProvider<MrNode>, vscod
   summary(): { message?: string; mergeRequests: string[] } {
     return {
       message: this.view.message,
-      mergeRequests: this.mrs.map((m) => `${m.id} ${m.title}`),
+      mergeRequests: [...this.states.values()].flatMap((s) =>
+        s.mrs.map((m) => `${m.id} ${m.title}`),
+      ),
     };
   }
 
@@ -167,20 +189,21 @@ export class MergeRequestsTree implements vscode.TreeDataProvider<MrNode>, vscod
   }
 
   /** Fetches what is missing locally and lists the changed files (cached until a refresh). */
-  changesOf(mr: MergeRequest): Promise<MergeRequestChanges> {
-    let p = this.changes.get(mr.id);
+  changesOf(root: string, mr: MergeRequest): Promise<MergeRequestChanges> {
+    const key = `${root}\n${mr.id}`;
+    let p = this.changes.get(key);
     if (!p) {
-      p = this.loadChanges(mr);
-      this.changes.set(mr.id, p);
-      p.catch(() => this.changes.delete(mr.id));
+      p = this.loadChanges(root, mr);
+      this.changes.set(key, p);
+      p.catch(() => this.changes.delete(key));
     }
     return p;
   }
 
-  private async loadChanges(mr: MergeRequest): Promise<MergeRequestChanges> {
-    const h = this.hosting;
-    if (!h || !this.root) throw new Error("No repository.");
-    const git = this.repos.git(this.root);
+  private async loadChanges(root: string, mr: MergeRequest): Promise<MergeRequestChanges> {
+    const h = this.states.get(root)?.hosting;
+    if (!h) throw new Error("No repository.");
+    const git = this.repos.git(root);
     const has = async (rev: string) =>
       !!(
         await git.run(["rev-parse", "-q", "--verify", `${rev}^{commit}`], { okCodes: [1] })
@@ -192,10 +215,11 @@ export class MergeRequestsTree implements vscode.TreeDataProvider<MrNode>, vscod
     }
     // The target moves: fetch it once per refresh (offline: use what is there).
     const target = `refs/remotes/${h.remote}/${mr.target}`;
-    if (!this.fetchedTargets.has(mr.target)) {
+    const targetKey = `${root}\n${mr.target}`;
+    if (!this.fetchedTargets.has(targetKey)) {
       try {
         await this.fetch(git, h.remote, mr.target);
-        this.fetchedTargets.add(mr.target);
+        this.fetchedTargets.add(targetKey);
       } catch (e) {
         if (!(await has(target))) throw e;
       }
@@ -211,19 +235,20 @@ export class MergeRequestsTree implements vscode.TreeDataProvider<MrNode>, vscod
 
   async getChildren(node?: MrNode): Promise<MrNode[]> {
     if (!node) {
-      if (!this.loaded) return [];
-      const items = sortItems(this.mrs, this.sort.get()).map((mr): MrNode => ({ kind: "mr", mr }));
-      return items.length
-        ? items
-        : [{ kind: "note", id: "none", text: `No open ${this.word().toLowerCase()}s` }];
+      if (this.shown.length > 1)
+        return this.shown.map((root) => ({ kind: "repo", root, name: path.basename(root) }));
+      return this.repoChildren(this.shown[0]);
     }
+    if (node.kind === "repo") return this.repoChildren(node.root);
     if (node.kind !== "mr") return [];
+    const { root } = node;
     const id = `${node.mr.id}`;
     try {
-      const c = await this.changesOf(node.mr);
-      if (!c.files.length) return [{ kind: "note", id: `${id}:empty`, text: "No changes" }];
+      const c = await this.changesOf(root, node.mr);
+      if (!c.files.length) return [{ kind: "note", root, id: `${id}:empty`, text: "No changes" }];
       return c.files.map((file) => ({
         kind: "file",
+        root,
         mr: node.mr,
         file,
         base: c.base,
@@ -234,6 +259,7 @@ export class MergeRequestsTree implements vscode.TreeDataProvider<MrNode>, vscod
       return [
         {
           kind: "note",
+          root,
           id: `${id}:error`,
           text: `Could not load the changes: ${text}`,
           error: true,
@@ -242,19 +268,66 @@ export class MergeRequestsTree implements vscode.TreeDataProvider<MrNode>, vscod
     }
   }
 
-  private word(): string {
-    return mergeRequestWord(this.hosting?.provider ?? "gitlab");
+  /** The repository's merge requests, or why there are none. */
+  private repoChildren(root: string | undefined): MrNode[] {
+    const state = root && this.states.get(root);
+    if (!root || !state) return [];
+    if (!state.loaded)
+      return this.shown.length > 1 && (state.message || state.needsAuth)
+        ? [
+            {
+              kind: "note",
+              root,
+              id: "unavailable",
+              text: state.message ?? "Sign in to list the merge requests",
+              signIn: state.needsAuth,
+            },
+          ]
+        : [];
+    const items = sortItems(state.mrs, this.sort.get()).map((mr): MrNode => ({
+      kind: "mr",
+      root,
+      mr,
+    }));
+    return items.length
+      ? items
+      : [
+          {
+            kind: "note",
+            root,
+            id: "none",
+            text: `No open ${mergeRequestWord(state.hosting?.provider ?? "gitlab").toLowerCase()}s`,
+          },
+        ];
+  }
+
+  private provider(root: string): Hosting["provider"] {
+    return this.states.get(root)?.hosting?.provider ?? "gitlab";
   }
 
   getTreeItem(node: MrNode): vscode.TreeItem {
     switch (node.kind) {
+      case "repo": {
+        const item = new vscode.TreeItem(node.name, vscode.TreeItemCollapsibleState.Expanded);
+        item.id = `repo:${node.root}`;
+        item.description = this.states.get(node.root)?.hosting?.path;
+        item.iconPath = new vscode.ThemeIcon("repo");
+        item.tooltip = node.root;
+        return item;
+      }
       case "mr":
         return this.mrItem(node);
       case "file":
         return this.fileItem(node);
       case "note": {
         const item = new vscode.TreeItem(node.text, vscode.TreeItemCollapsibleState.None);
-        item.id = `note:${node.id}`;
+        item.id = `note:${node.root}:${node.id}`;
+        if (node.signIn)
+          item.command = {
+            command: "gitTool.mergeRequests.signIn",
+            title: "Sign In",
+            arguments: [node],
+          };
         if (node.error) item.iconPath = new vscode.ThemeIcon("warning");
         item.tooltip = node.text;
         return item;
@@ -264,11 +337,12 @@ export class MergeRequestsTree implements vscode.TreeDataProvider<MrNode>, vscod
 
   private mrItem(node: Extract<MrNode, { kind: "mr" }>): vscode.TreeItem {
     const m = node.mr;
-    const provider = this.hosting?.provider ?? "gitlab";
+    const provider = this.provider(node.root);
+    const branch = this.states.get(node.root)?.branch;
     const ref = mergeRequestRef(provider, m.id);
-    const current = !!this.branch && !m.fork && m.source === this.branch;
+    const current = !!branch && !m.fork && m.source === branch;
     const item = new vscode.TreeItem(m.title, vscode.TreeItemCollapsibleState.Collapsed);
-    item.id = `mr:${m.id}`;
+    item.id = `mr:${node.root}:${m.id}`;
     item.description = [ref, m.authorName, current ? "current branch" : "", statusText(m)]
       .filter(Boolean)
       .join(" · ");
@@ -308,7 +382,7 @@ export class MergeRequestsTree implements vscode.TreeDataProvider<MrNode>, vscod
       vscode.Uri.from({ scheme: STATUS_SCHEME, path: `/${f.path}`, query: f.status }),
       vscode.TreeItemCollapsibleState.None,
     );
-    item.id = `file:${node.mr.id}:${f.path}`;
+    item.id = `file:${node.root}:${node.mr.id}:${f.path}`;
     item.label = f.path.slice(slash + 1);
     item.description = [f.oldPath ? `← ${f.oldPath}` : "", slash >= 0 ? f.path.slice(0, slash) : ""]
       .filter(Boolean)
@@ -322,11 +396,11 @@ export class MergeRequestsTree implements vscode.TreeDataProvider<MrNode>, vscod
   /** Diff of a file from the merge base to the merge request's head. */
   async openDiff(node: unknown): Promise<void> {
     const n = node as MrNode | undefined;
-    if (n?.kind !== "file" || !this.root) return;
+    if (n?.kind !== "file") return;
     const f = n.file;
-    const left = revisionUri(this.root, f.status === "A" ? "" : n.base, f.oldPath ?? f.path);
-    const right = revisionUri(this.root, f.status === "D" ? "" : n.head, f.path);
-    const ref = mergeRequestRef(this.hosting?.provider ?? "gitlab", n.mr.id);
+    const left = revisionUri(n.root, f.status === "A" ? "" : n.base, f.oldPath ?? f.path);
+    const right = revisionUri(n.root, f.status === "D" ? "" : n.head, f.path);
+    const ref = mergeRequestRef(this.provider(n.root), n.mr.id);
     await vscode.commands.executeCommand(
       "vscode.diff",
       left,
@@ -339,4 +413,10 @@ export class MergeRequestsTree implements vscode.TreeDataProvider<MrNode>, vscod
   dispose(): void {
     for (const d of this.disposables) d.dispose();
   }
+}
+
+/** Merge-request wording for a view listing several repositories: "Pull" only if all are GitHub. */
+function providerOf(states: Map<string, RepoMrs>): Hosting["provider"] {
+  const providers = [...states.values()].flatMap((s) => (s.hosting ? [s.hosting.provider] : []));
+  return providers.length && providers.every((p) => p === "github") ? "github" : "gitlab";
 }

@@ -22,6 +22,7 @@ const mrOf = (node: unknown): MergeRequest | undefined => {
   const n = node as { kind?: string; mr?: MergeRequest } | undefined;
   return n?.kind === "mr" ? n.mr : undefined;
 };
+const rootOf = (node: unknown): string => (node as { root: string }).root;
 
 export function registerMergeRequestCommands(
   reg: Register,
@@ -75,7 +76,7 @@ export function registerMergeRequestCommands(
     if (!mr) return;
     let changes: MergeRequestChanges | undefined;
     const ok = await withProgress(`Fetch ${mr.source}`, async () => {
-      changes = await tree.changesOf(mr);
+      changes = await tree.changesOf(rootOf(node), mr);
     });
     if (ok && changes) await compare.compare(changes.base, changes.head);
   });
@@ -83,8 +84,8 @@ export function registerMergeRequestCommands(
   /** Checks out the source branch (a fork's merge request: a local `mr/<id>` branch). */
   reg("gitTool.mr.checkout", async (node: unknown) => {
     const mr = mrOf(node);
-    const h = tree.hosting;
     const git = repos.currentGit();
+    const h = git && (await hostingOf(git));
     if (!mr || !h || !git) return;
     if (!mr.fork) {
       const fetched = await withProgress(`Fetch ${mr.source}`, () =>

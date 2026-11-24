@@ -114,6 +114,27 @@ const tests: [string, () => Promise<void>][] = [
     },
   ],
   [
+    'scope "all" counts the changes of every repository, "active" goes back to one',
+    async () => {
+      const config = vscode.workspace.getConfiguration("gitTool");
+      await config.update("workspaceScope", "all", vscode.ConfigurationTarget.Global);
+      try {
+        await until(
+          () => api.changeCountBadge(),
+          (b) => b?.value === 3,
+          "3 changes from both repositories",
+        );
+      } finally {
+        await config.update("workspaceScope", undefined, vscode.ConfigurationTarget.Global);
+      }
+      await until(
+        () => api.changeCountBadge(),
+        (b) => b?.value === 1,
+        "alpha's 1 change again",
+      );
+    },
+  ],
+  [
     "removing beta from the workspace leaves alpha's repository showing",
     async () => {
       vscode.workspace.updateWorkspaceFolders(1, 1);

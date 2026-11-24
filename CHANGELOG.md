@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- New setting `gitTool.workspaceScope`: in a workspace with several repositories, choose
+  whether the Commit, Branches, Merge Requests, Issues and Worktrees views show only the active
+  repository (`active`, the default, as before) or every repository (`all`), one section per
+  repository. Commit then commits the ticked files of each repository with the same message.
+
 ## 1.1.0 — 2026-11-23
 
 - **New Tag** now creates a local tag only and no longer offers to push it. Push it later with

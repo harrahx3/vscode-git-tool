@@ -11,6 +11,8 @@ export const WORKTREES_VIEW_ID = "gitTool.worktrees";
 
 export interface WorktreeNode {
   kind: "worktree";
+  /** Repository the worktree was listed from, for commands run on it. */
+  root: string;
   worktree: Worktree;
   isCurrent: boolean;
   /** Folder of this workspace (its views can switch to it without reopening the window). */
@@ -43,33 +45,40 @@ export class WorktreesTree implements vscode.TreeDataProvider<WorktreeNode>, vsc
   async refresh(force = false): Promise<void> {
     const generation = ++this.generation;
     const root = this.repos.currentRoot();
-    let list: Worktree[] = [];
-    if (root) {
-      try {
-        list = await listWorktrees(this.repos.git(root));
-      } catch (e) {
-        this.view.message = e instanceof Error ? e.message : String(e);
-        return;
-      }
+    const shown = this.repos.scopedRoots();
+    const listed: { root: string; worktree: Worktree }[] = [];
+    try {
+      const lists = await Promise.all(
+        shown.map(async (r) => ({ root: r, list: await listWorktrees(this.repos.git(r)) })),
+      );
+      // Worktrees of one repository show up from each of its worktrees open in the workspace.
+      for (const { root: r, list } of lists)
+        for (const worktree of list)
+          if (!listed.some((l) => samePath(l.worktree.path, worktree.path)))
+            listed.push({ root: r, worktree });
+    } catch (e) {
+      this.view.message = e instanceof Error ? e.message : String(e);
+      return;
     }
     if (generation !== this.generation) return;
     const roots = this.repos.roots();
-    const nodes = list
-      .filter((w) => !w.bare)
-      .map((worktree): WorktreeNode => {
+    const nodes = listed
+      .filter((l) => !l.worktree.bare)
+      .map(({ root: from, worktree }): WorktreeNode => {
         const isCurrent = !!root && samePath(worktree.path, root);
         return {
           kind: "worktree",
+          root: from,
           worktree,
           isCurrent,
           inWorkspace: !isCurrent && roots.some((r) => samePath(r, worktree.path)),
         };
       });
-    const fingerprint = JSON.stringify([root, nodes]);
+    const fingerprint = JSON.stringify([root, shown, nodes]);
     if (!force && fingerprint === this.fingerprint) return;
     this.fingerprint = fingerprint;
     this.nodes = nodes;
-    this.view.message = root ? undefined : "No Git repository is open.";
+    this.view.message = shown.length ? undefined : "No Git repository is open.";
     this.view.description = nodes.length > 1 ? String(nodes.length) : undefined;
     this.changed.fire();
   }

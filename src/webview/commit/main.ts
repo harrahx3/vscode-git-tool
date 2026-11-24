@@ -115,7 +115,7 @@ window.addEventListener("message", (event: MessageEvent<CommitToWebview>) => {
       branchLabel.replaceChildren(
         ...(parts.length ? [icon("git-branch"), " ", parts.join(" · ")] : []),
       );
-      list.update(view.lists, view.notice);
+      list.update(view.lists, view.notice, view.repos);
       updateButtons();
       break;
     }

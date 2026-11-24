@@ -2,11 +2,14 @@
 // what gets committed, multi-selection (Ctrl/Shift+click, arrows), native right-click menus
 // (`data-vscode-context`, `webview/context` in package.json), row buttons, and drag and drop of
 // files between changelists with pointer events (HTML5 drag does nothing in a VS Code webview).
+import { fileKey } from "../../shared/changeGroups";
 import type {
   ChangeListView,
   ChangeRow,
   CommitFromWebview,
   CommitRowCommand,
+  FileRef,
+  RepoHeader,
   RowContext,
 } from "../../shared/messages";
 import { h, icon } from "../common/dom";
@@ -38,6 +41,13 @@ const STATUS_TITLE: Record<string, string> = {
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
+/** A file of a row, with the group (hence the repository) it is listed in. */
+interface Entry {
+  ref: FileRef;
+  file: ChangeRow;
+  group: ChangeListView;
+}
+
 export interface ChangesOptions {
   send: (m: CommitFromWebview) => void;
   collapsed: Set<string>;
@@ -50,6 +60,7 @@ export class ChangesList {
   private readonly rowsBox = h("div.rows");
   private readonly ghost = h("div.drag-ghost", { hidden: true });
   private lists: ChangeListView[] = [];
+  private repos: RepoHeader[] = [];
   private rows: Row[] = [];
   private selected = new Set<string>();
   private anchor?: string;
@@ -60,8 +71,9 @@ export class ChangesList {
     this.element.addEventListener("keydown", (e) => this.onKey(e));
   }
 
-  update(lists: ChangeListView[], notice?: string): void {
+  update(lists: ChangeListView[], notice?: string, repos: RepoHeader[] = []): void {
     this.lists = lists;
+    this.repos = repos;
     this.notice.textContent = notice ?? "";
     this.notice.hidden = !notice;
     this.render();
@@ -71,24 +83,49 @@ export class ChangesList {
 
   private render(): void {
     this.rows = [];
+    /** Repository headers go before the first row of their repository. */
+    const headerBefore = new Map<Row, RepoHeader>();
+    let lastRoot: string | undefined;
     for (const group of this.lists) {
       if (group.kind !== "changelist" && !group.files.length) continue;
+      const first = this.rows.length;
+      const header = group.root !== lastRoot && this.repos.find((r) => r.root === group.root);
+      lastRoot = group.root;
       this.rows.push({ kind: "group", key: group.key, group });
       if (!this.o.collapsed.has(group.key))
         for (const file of group.files)
-          this.rows.push({ kind: "file", key: `file:${file.path}`, group, file });
+          this.rows.push({ kind: "file", key: fileKey(group.root, file.path), group, file });
+      if (header) headerBefore.set(this.rows[first], header);
     }
     const known = new Set(this.rows.map((r) => r.key));
     const before = this.selected.size;
     this.selected = new Set([...this.selected].filter((k) => known.has(k)));
     if (this.selected.size !== before) this.postSelection();
     if (this.focusKey && !known.has(this.focusKey)) this.focusKey = undefined;
-    this.rowsBox.replaceChildren(...this.rows.map((r) => this.rowElement(r)));
+    this.rowsBox.replaceChildren(
+      ...this.rows.flatMap((r) => {
+        const header = headerBefore.get(r);
+        return header ? [this.repoRow(header), this.rowElement(r)] : [this.rowElement(r)];
+      }),
+    );
     this.o.send({
       type: "status",
       files: this.rows.flatMap((r) => (r.kind === "file" ? [r.file.path] : [])),
       notice: this.notice.hidden ? undefined : (this.notice.textContent ?? undefined),
     });
+  }
+
+  private repoRow(r: RepoHeader): HTMLElement {
+    const el = h(
+      "div.row.repo",
+      { title: r.root },
+      h("span.twisty"),
+      icon("repo"),
+      h("span.name", { text: r.name }),
+      h("span.dim", { text: [r.branch, r.ahead ? `↑${r.ahead}` : ""].filter(Boolean).join(" ") }),
+    );
+    if (r.notice) el.append(h("span.dim", { text: ` · ${r.notice}` }));
+    return el;
   }
 
   private rowElement(row: Row): HTMLElement {
@@ -107,6 +144,7 @@ export class ChangesList {
     if (row.kind === "file")
       return {
         webviewSection: "change",
+        root: row.group.root,
         path: row.file.path,
         list: row.group.name,
         untracked: row.file.untracked,
@@ -116,21 +154,22 @@ export class ChangesList {
     if (g.kind === "changelist")
       return {
         webviewSection: "changelist",
+        root: g.root,
         list: g.name,
         active: g.active,
         empty: !g.files.length,
       };
-    return { webviewSection: g.kind };
+    return { webviewSection: g.kind, root: g.root };
   }
 
-  private checkbox(state: boolean | "mixed", paths: () => string[]): HTMLInputElement {
+  private checkbox(state: boolean | "mixed", files: () => FileRef[]): HTMLInputElement {
     const box = h("input.tick", { type: "checkbox", "aria-label": "Include in commit" });
     box.checked = state === true;
     box.indeterminate = state === "mixed";
     box.addEventListener("click", (e) => e.stopPropagation());
     box.addEventListener("pointerdown", (e) => e.stopPropagation());
     box.addEventListener("change", () =>
-      this.o.send({ type: "include", paths: paths(), on: box.checked }),
+      this.o.send({ type: "include", files: files(), on: box.checked }),
     );
     return box;
   }
@@ -169,7 +208,7 @@ export class ChangesList {
       g.kind === "conflicts"
         ? icon("warning")
         : g.files.length
-          ? this.checkbox(state, () => this.pathsOf(row, true))
+          ? this.checkbox(state, () => this.entriesOf(row, true).map((e) => e.ref))
           : h("span.tick-space"),
       h("span.name", { text: g.name }),
       h("span.dim", { text: (g.active ? "active · " : "") + plural(g.files.length, "file") }),
@@ -190,7 +229,7 @@ export class ChangesList {
   }
 
   private fileRow(g: ChangeListView, f: ChangeRow): HTMLElement {
-    const row: Row = { kind: "file", key: `file:${f.path}`, group: g, file: f };
+    const row: Row = { kind: "file", key: fileKey(g.root, f.path), group: g, file: f };
     const slash = f.path.lastIndexOf("/");
     const buttons = h("span.row-buttons");
     if (f.conflict)
@@ -209,7 +248,9 @@ export class ChangesList {
       `div.row.file.st-${STATUS_CLASS[f.status] ?? "modified"}` as "div",
       { role: "treeitem" },
       h("span.twisty"),
-      f.conflict ? h("span.tick-space") : this.checkbox(f.included, () => this.pathsOf(row, true)),
+      f.conflict
+        ? h("span.tick-space")
+        : this.checkbox(f.included, () => this.entriesOf(row, true).map((e) => e.ref)),
       h("span.name", { text: f.path.slice(slash + 1) }),
       h("span.dim", { text: slash >= 0 ? f.path.slice(0, slash) : "" }),
       buttons,
@@ -229,23 +270,29 @@ export class ChangesList {
   // ---- Selection ------------------------------------------------------------------------------
 
   /** Files of a row; with `followSelection`, of the whole selection when it holds the row. */
-  private pathsOf(row: Row, followSelection: boolean, onlyMovable = false): string[] {
+  private entriesOf(row: Row, followSelection: boolean, onlyMovable = false): Entry[] {
     const keys =
       followSelection && this.selected.has(row.key) && this.selected.size > 1
         ? [...this.selected]
         : [row.key];
-    const out = new Set<string>();
+    const out = new Map<string, Entry>();
+    const add = (group: ChangeListView, file: ChangeRow) => {
+      if (file.conflict || (onlyMovable && file.untracked)) return;
+      out.set(fileKey(group.root, file.path), {
+        ref: group.root ? { root: group.root, path: file.path } : { path: file.path },
+        file,
+        group,
+      });
+    };
     for (const k of keys) {
       const r = this.rows.find((x) => x.key === k) ?? (k === row.key ? row : undefined);
-      const groupOf = r?.kind === "group" ? r.group : undefined;
-      const files = groupOf
-        ? groupOf.files
-        : r?.kind === "file"
-          ? [r.file]
-          : this.lists.flatMap((l) => l.files).filter((f) => `file:${f.path}` === k);
-      for (const f of files) if (!f.conflict && (!onlyMovable || !f.untracked)) out.add(f.path);
+      if (r?.kind === "group") for (const f of r.group.files) add(r.group, f);
+      else if (r?.kind === "file") add(r.group, r.file);
+      else
+        for (const g of this.lists)
+          for (const f of g.files) if (fileKey(g.root, f.path) === k) add(g, f);
     }
-    return [...out];
+    return [...out.values()];
   }
 
   private postSelection(): void {
@@ -331,10 +378,13 @@ export class ChangesList {
       );
     } else if (!row) return;
     else if (e.key === " ") {
-      const paths = this.pathsOf(row, true);
-      const files = this.lists.flatMap((l) => l.files).filter((f) => paths.includes(f.path));
-      if (paths.length)
-        this.o.send({ type: "include", paths, on: !files.every((f) => f.included) });
+      const entries = this.entriesOf(row, true);
+      if (entries.length)
+        this.o.send({
+          type: "include",
+          files: entries.map((e) => e.ref),
+          on: !entries.every((e) => e.file.included),
+        });
     } else if (e.key === "Enter") this.activate(row);
     else if (e.key === "ArrowRight" && row.kind === "group" && this.o.collapsed.has(row.key))
       this.toggle(row.key);
@@ -353,19 +403,23 @@ export class ChangesList {
     const target = e.currentTarget as HTMLElement;
     const startX = e.clientX;
     const startY = e.clientY;
-    let paths: string[] | undefined;
+    let entries: Entry[] | undefined;
     let over: HTMLElement | undefined;
     const dropTarget = (ev: PointerEvent) => {
       const el = document.elementFromPoint(ev.clientX, ev.clientY)?.closest<HTMLElement>(".row");
       const key = el?.dataset.key;
       const r = this.rows.find((x) => x.key === key);
-      return r && r.group.kind === "changelist" ? { el: el!, list: r.group.name } : undefined;
+      // Files move between the changelists of their own repository only.
+      return r && r.group.kind === "changelist" && r.group.root === row.group.root
+        ? { el: el!, list: r.group.name }
+        : undefined;
     };
     const move = (ev: PointerEvent) => {
-      if (!paths) {
+      if (!entries) {
         if (Math.hypot(ev.clientX - startX, ev.clientY - startY) < 5) return;
-        paths = this.pathsOf(row, true, true);
-        if (!paths.length) return cleanup();
+        entries = this.entriesOf(row, true, true).filter((e) => e.group.root === row.group.root);
+        if (!entries.length) return cleanup();
+        const paths = entries.map((e) => e.ref.path);
         target.setPointerCapture(ev.pointerId);
         this.ghost.textContent =
           paths.length === 1 ? (paths[0].split("/").pop() ?? paths[0]) : `${paths.length} files`;
@@ -382,10 +436,15 @@ export class ChangesList {
       }
     };
     const up = (ev: PointerEvent) => {
-      const t = paths ? dropTarget(ev) : undefined;
-      if (paths) this.suppressClick = true;
-      if (paths && t && t.list !== row.group.name)
-        this.o.send({ type: "move", paths, list: t.list });
+      const t = entries ? dropTarget(ev) : undefined;
+      if (entries) this.suppressClick = true;
+      if (entries && t && t.list !== row.group.name)
+        this.o.send({
+          type: "move",
+          ...(row.group.root ? { root: row.group.root } : {}),
+          paths: entries.map((e) => e.ref.path),
+          list: t.list,
+        });
       cleanup();
       // The click that follows a drag is swallowed; none follows when the pointer left the row.
       setTimeout(() => (this.suppressClick = false), 0);

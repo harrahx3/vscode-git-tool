@@ -124,6 +124,15 @@ body {
 .row.file {
   padding-left: 20px;
 }
+.row.repo {
+  cursor: default;
+  font-weight: 600;
+  background: var(--vscode-sideBarSectionHeader-background, transparent);
+  border-top: 1px solid var(--vscode-sideBarSectionHeader-border, transparent);
+}
+.row.repo:hover {
+  background: var(--vscode-sideBarSectionHeader-background, transparent);
+}
 .row:hover {
   background: var(--hover-bg);
 }

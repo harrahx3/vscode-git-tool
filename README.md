@@ -214,11 +214,20 @@ When a pre-commit hook passes, its summary (`pre-commit: 5 passed`) or its first
 
 ## Settings
 
-| Setting                         | Default |                                                        |
-| ------------------------------- | ------- | ------------------------------------------------------ |
-| `gitTool.showBranchInStatusBar` | `true`  | Show the current branch on the right of the status bar |
-| `gitTool.updateMethod`          | `merge` | `merge` or `rebase` for _Pull_                         |
-| `gitTool.hostingProviders`      | `{}`    | Service of a remote host when it can't be guessed      |
+| Setting                         | Default  |                                                        |
+| ------------------------------- | -------- | ------------------------------------------------------ |
+| `gitTool.showBranchInStatusBar` | `true`   | Show the current branch on the right of the status bar |
+| `gitTool.workspaceScope`        | `active` | `active` or `all`: see below                           |
+| `gitTool.updateMethod`          | `merge`  | `merge` or `rebase` for _Pull_                         |
+| `gitTool.hostingProviders`      | `{}`     | Service of a remote host when it can't be guessed      |
+
+`gitTool.workspaceScope` matters in a workspace with several repositories. With `active` (the
+default) the views show the active repository: the one of the file being edited, or the one
+picked in the Log. With `all` the Commit, Branches, Merge Requests, Issues and Worktrees views
+list every repository, one section per repository; a command acts on the repository of the row
+you use it on. In the Commit view, _Commit_ commits the ticked files of each repository with the
+same message (_Amend_ needs ticked files in one repository only). The Log always shows one
+repository at a time.
 
 `gitTool.hostingProviders` maps a host to `gitlab`, `github` or `bitbucket`, for example
 `{"git.example.com": "github"}` for a GitHub Enterprise server. Without an entry, `github.com`

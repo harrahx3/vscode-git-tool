@@ -17,6 +17,14 @@ export interface ChangeGroup {
 export const UNVERSIONED_TITLE = "Unversioned Files";
 export const CONFLICTS_TITLE = "Merge Conflicts";
 
+/** Selection key of a file row (`root` is undefined in a test fixture or a single-repo list). */
+export const fileKey = (root: string | undefined, path: string): string =>
+  `file:${root ?? ""}|${path}`;
+
+/** Selection key of a group row: `list:<name>`, `unversioned` or `conflicts`, per repository. */
+export const groupKey = (root: string | undefined, g: ChangeGroup): string =>
+  `${root ?? ""}|${g.conflicts ? "conflicts" : g.unversioned ? "unversioned" : `list:${g.name}`}`;
+
 export const isUntracked = (c: WorkingChange): boolean => c.index === "?";
 
 /** Unmerged after a merge, rebase, cherry-pick, revert or unstash that stopped on conflicts. */

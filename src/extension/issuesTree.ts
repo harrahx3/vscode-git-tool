@@ -1,5 +1,6 @@
 // The Issues view: the open issues of the repository's remote (GitLab, GitHub), one flat list in
 // the order the user picks (Sort By…).
+import * as path from "path";
 import * as vscode from "vscode";
 import type { Issue } from "../shared/issues";
 import { sortItems, type SortKey } from "../shared/sorting";
@@ -11,18 +12,30 @@ import { sortLabel, SortSetting } from "./sortPick";
 export const ISSUES_VIEW_ID = "gitTool.issues";
 const NEEDS_AUTH = "gitTool.issues.needsAuth";
 
+/** `root`: the repository of the node, for commands run on it (see `reg` in extension.ts). */
 export type IssueNode =
-  { kind: "issue"; issue: Issue } | { kind: "note"; id: string; text: string };
+  | { kind: "repo"; root: string; name: string }
+  | { kind: "issue"; root: string; issue: Issue }
+  | { kind: "note"; root: string; id: string; text: string; signIn?: boolean };
+
+/** What one repository's remote returned. */
+interface RepoIssues {
+  hosting?: Hosting;
+  issues: Issue[];
+  /** The list was loaded (else a message or the sign-in buttons are shown). */
+  loaded: boolean;
+  message?: string;
+  needsAuth?: boolean;
+}
 
 const when = (iso: string) => (iso ? new Date(iso).toLocaleString() : "");
 
 export class IssuesTree implements vscode.TreeDataProvider<IssueNode>, vscode.Disposable {
   readonly view: vscode.TreeView<IssueNode>;
   hosting?: Hosting;
-  private root?: string;
-  private issues: Issue[] = [];
-  /** The list was loaded (else a message or the sign-in buttons are shown). */
-  private loaded = false;
+  private scopeKey?: string;
+  private shown: string[] = [];
+  private states = new Map<string, RepoIssues>();
   private readonly sort: SortSetting;
   /** The list needs reloading next time the view is shown. */
   private stale = true;
@@ -48,9 +61,9 @@ export class IssuesTree implements vscode.TreeDataProvider<IssueNode>, vscode.Di
         this.stale = true;
         if (this.view.visible) void this.refresh();
       }),
-      // Issues don't depend on the working tree: reload only for another repository.
+      // Issues don't depend on the working tree: reload only for other repositories.
       repos.onDidChange(() => {
-        if (this.repos.currentRoot() === this.root) return;
+        if (this.repos.scopeKey() === this.scopeKey) return;
         this.stale = true;
         if (this.view.visible) void this.refresh();
       }),
@@ -74,63 +87,108 @@ export class IssuesTree implements vscode.TreeDataProvider<IssueNode>, vscode.Di
       .join(" · ");
   }
 
-  /** Reloads the list from the hosting service. */
+  /** Reloads the lists from the hosting services. */
   async refresh(): Promise<void> {
     const generation = ++this.generation;
     this.stale = false;
-    const root = this.repos.currentRoot();
-    this.root = root;
-    const show = (message: string | undefined, needsAuth = false) => {
-      if (generation !== this.generation) return;
-      this.view.message = message;
-      void vscode.commands.executeCommand("setContext", NEEDS_AUTH, needsAuth);
-      this.changed.fire(undefined);
-    };
-    this.issues = [];
-    this.loaded = false;
-    if (!root) return show("No Git repository is open.");
-    const found = await findHosting(this.repos.git(root));
-    if (!("hosting" in found)) {
-      this.hosting = undefined;
-      return show(found.problem);
-    }
-    const h = (this.hosting = found.hosting);
+    const shown = this.repos.scopedRoots();
+    this.scopeKey = this.repos.scopeKey();
+    const states = new Map<string, RepoIssues>();
+    await Promise.all(shown.map(async (root) => states.set(root, await this.load(root))));
+    if (generation !== this.generation) return;
+    this.shown = shown;
+    this.states = states;
+    // One repository: its message and sign-in buttons go on the view itself.
+    const only = shown.length === 1 ? states.get(shown[0]) : undefined;
+    this.hosting = only?.hosting;
+    this.view.message = shown.length ? only?.message : "No Git repository is open.";
+    void vscode.commands.executeCommand("setContext", NEEDS_AUTH, !!only?.needsAuth);
     this.showDescription();
+    this.changed.fire(undefined);
+  }
+
+  private async load(root: string): Promise<RepoIssues> {
+    const found = await findHosting(this.repos.git(root));
+    if (!("hosting" in found)) return { issues: [], loaded: false, message: found.problem };
+    const hosting = found.hosting;
     try {
-      const issues = await openIssues(this.api, h);
-      if (generation !== this.generation) return;
-      this.issues = issues;
-      this.loaded = true;
-      show(undefined);
+      return { hosting, issues: await openIssues(this.api, hosting), loaded: true };
     } catch (e) {
-      if (e instanceof AuthRequired) return show(undefined, true);
-      show(e instanceof Error ? e.message : String(e));
+      if (e instanceof AuthRequired) return { hosting, issues: [], loaded: false, needsAuth: true };
+      return {
+        hosting,
+        issues: [],
+        loaded: false,
+        message: e instanceof Error ? e.message : String(e),
+      };
     }
   }
 
   /** For the integration tests: the view's message and its issues. */
   summary(): { message?: string; issues: string[] } {
-    return { message: this.view.message, issues: this.issues.map((i) => `${i.id} ${i.title}`) };
+    return {
+      message: this.view.message,
+      issues: [...this.states.values()].flatMap((s) => s.issues.map((i) => `${i.id} ${i.title}`)),
+    };
   }
 
   // ---- Tree data provider ---------------------------------------------------------------------
 
   getChildren(node?: IssueNode): IssueNode[] {
-    if (node || !this.loaded) return [];
-    const items = sortItems(this.issues, this.sort.get()).map((issue): IssueNode => ({
+    if (!node) {
+      if (this.shown.length > 1)
+        return this.shown.map((root) => ({ kind: "repo", root, name: path.basename(root) }));
+      return this.repoChildren(this.shown[0]);
+    }
+    return node.kind === "repo" ? this.repoChildren(node.root) : [];
+  }
+
+  /** The repository's issues, or why there are none. */
+  private repoChildren(root: string | undefined): IssueNode[] {
+    const state = root && this.states.get(root);
+    if (!root || !state) return [];
+    const multi = this.shown.length > 1;
+    if (!state.loaded)
+      return multi && (state.message || state.needsAuth)
+        ? [
+            {
+              kind: "note",
+              root,
+              id: "unavailable",
+              text: state.message ?? "Sign in to list the issues",
+              signIn: state.needsAuth,
+            },
+          ]
+        : [];
+    const items = sortItems(state.issues, this.sort.get()).map((issue): IssueNode => ({
       kind: "issue",
+      root,
       issue,
     }));
-    return items.length ? items : [{ kind: "note", id: "none", text: "No open issues" }];
+    return items.length ? items : [{ kind: "note", root, id: "none", text: "No open issues" }];
   }
 
   getTreeItem(node: IssueNode): vscode.TreeItem {
     switch (node.kind) {
+      case "repo": {
+        const item = new vscode.TreeItem(node.name, vscode.TreeItemCollapsibleState.Expanded);
+        item.id = `repo:${node.root}`;
+        item.description = this.states.get(node.root)?.hosting?.path;
+        item.iconPath = new vscode.ThemeIcon("repo");
+        item.tooltip = node.root;
+        return item;
+      }
       case "issue":
         return this.issueItem(node);
       case "note": {
         const item = new vscode.TreeItem(node.text, vscode.TreeItemCollapsibleState.None);
-        item.id = `note:${node.id}`;
+        item.id = `note:${node.root}:${node.id}`;
+        if (node.signIn)
+          item.command = {
+            command: "gitTool.mergeRequests.signIn",
+            title: "Sign In",
+            arguments: [node],
+          };
         return item;
       }
     }
@@ -140,7 +198,7 @@ export class IssuesTree implements vscode.TreeDataProvider<IssueNode>, vscode.Di
     const i = node.issue;
     const ref = `#${i.id}`;
     const item = new vscode.TreeItem(i.title, vscode.TreeItemCollapsibleState.None);
-    item.id = `issue:${i.id}`;
+    item.id = `issue:${node.root}:${i.id}`;
     item.description = [ref, i.authorName, i.labels.join(", ")].filter(Boolean).join(" · ");
     item.iconPath = new vscode.ThemeIcon(
       i.confidential ? "lock" : "issues",

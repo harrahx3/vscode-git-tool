@@ -39,6 +39,11 @@ function showProgress(): () => void {
   return done;
 }
 
+const SCOPE_SETTING = "gitTool.workspaceScope";
+
+/** Which repositories the views list: the active one only, or every repository of the workspace. */
+export type WorkspaceScope = "active" | "all";
+
 /**
  * Tracks the open repositories and which one the views show. Fires `onDidChange` (debounced)
  * when the repository list, the current repository or anything in it changes.
@@ -71,6 +76,9 @@ export class Repos implements vscode.Disposable {
         this.repoListeners.delete(r.rootUri.fsPath);
         if (this.current === r.rootUri.fsPath) this.current = undefined;
         this.fire(undefined);
+      }),
+      vscode.workspace.onDidChangeConfiguration((e) => {
+        if (e.affectsConfiguration(SCOPE_SETTING)) this.fire(undefined);
       }),
       vscode.window.onDidChangeActiveTextEditor((e) => {
         const root = e && this.rootOf(e.document.uri);
@@ -130,6 +138,33 @@ export class Repos implements vscode.Disposable {
     const fromEditor = editor && this.rootOf(editor.document.uri);
     this.current = fromEditor ?? roots[0];
     return this.current;
+  }
+
+  /** The `gitTool.workspaceScope` setting. */
+  scope(): WorkspaceScope {
+    return vscode.workspace.getConfiguration("gitTool").get<string>("workspaceScope") === "all"
+      ? "all"
+      : "active";
+  }
+
+  /** Repositories the views list: all of them in "all" scope, else the current one. */
+  scopedRoots(): string[] {
+    if (this.scope() === "all") return this.roots();
+    const root = this.currentRoot();
+    return root ? [root] : [];
+  }
+
+  /**
+   * Identifies what the views list: changes with the scope or the repositories in it. Views that
+   * load slowly (merge requests, issues) reload only when it changes.
+   */
+  scopeKey(): string {
+    return this.scopedRoots().join("\n");
+  }
+
+  /** Makes `root` the current repository without notifying the views (commands on a node). */
+  setCurrentQuiet(root: string): void {
+    if (this.roots().includes(root)) this.current = root;
   }
 
   setCurrent(root: string): void {
