@@ -15,9 +15,11 @@ import { refs } from "./git/queries";
 import type { Repos } from "./git/repos";
 import type { Git } from "./git/runner";
 import { withProgress } from "./git/ui";
+import { gitPathToLocal } from "../shared/winPaths";
 
 export async function listWorktrees(git: Git): Promise<Worktree[]> {
-  return parseWorktrees(await git.run(["worktree", "list", "--porcelain"]));
+  const list = parseWorktrees(await git.run(["worktree", "list", "--porcelain"]));
+  return list.map((w) => ({ ...w, path: gitPathToLocal(w.path) }));
 }
 
 /** Resolved path, for comparing git's paths with VS Code's (symlinks, trailing slashes). */

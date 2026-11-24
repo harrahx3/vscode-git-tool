@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { WorkingChange } from "../../shared/types";
 import { GitError, type Git } from "./runner";
+import { gitPathToLocal } from "../../shared/winPaths";
 
 async function isMerging(git: Git): Promise<boolean> {
   const out = await git.run(["rev-parse", "-q", "--verify", "MERGE_HEAD"], { okCodes: [1] });
@@ -125,7 +126,7 @@ export const OPERATION_LABEL: Record<Operation, string> = {
 
 /** The merge, rebase, cherry-pick or revert that stopped half-way, if any. */
 export async function currentOperation(git: Git): Promise<Operation | undefined> {
-  const dir = (await git.run(["rev-parse", "--absolute-git-dir"])).trim();
+  const dir = gitPathToLocal((await git.run(["rev-parse", "--absolute-git-dir"])).trim());
   const has = (name: string) => existsSync(join(dir, name));
   if (has("rebase-merge") || has("rebase-apply")) return "rebase";
   if (has("MERGE_HEAD")) return "merge";

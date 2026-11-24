@@ -7,6 +7,7 @@ import * as vscode from "vscode";
 import { hookReport, parseFindings, parsePreCommit, type Finding } from "./hooks";
 import { getHost } from "./output";
 import type { Git } from "./runner";
+import { gitPathToLocal } from "../../shared/winPaths";
 
 let diagnostics: vscode.DiagnosticCollection | undefined;
 
@@ -24,7 +25,7 @@ export function clearHookProblems(): void {
 export async function hookExists(git: Git, hook: string): Promise<boolean> {
   try {
     const rel = (await git.run(["rev-parse", "--git-path", `hooks/${hook}`])).trim();
-    fs.accessSync(path.resolve(git.root, rel), fs.constants.X_OK);
+    fs.accessSync(path.resolve(git.root, gitPathToLocal(rel)), fs.constants.X_OK);
     return true;
   } catch {
     return false;
