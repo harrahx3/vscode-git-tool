@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.2.0 — 2026-11-24
 
 - New setting `gitTool.workspaceScope`: in a workspace with several repositories, choose
   whether the Commit, Branches, Merge Requests, Issues and Worktrees views show only the active
