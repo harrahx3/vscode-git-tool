@@ -8,6 +8,7 @@ import { openConflict, resolveConflicts } from "./git/conflicts";
 import {
   OPERATION_LABEL,
   abortOperation,
+  acceptSide,
   continueOperation,
   currentOperation,
   filesWithMarkers,
@@ -16,6 +17,7 @@ import {
   stashChanges,
   unstashChanges,
 } from "./git/operations";
+import { dropAutostash, hasAutostash } from "./git/pullGuard";
 import type { Repos } from "./git/repos";
 import type { Git } from "./git/runner";
 import { withProgress } from "./git/ui";
@@ -31,6 +33,17 @@ interface RefArg {
 }
 
 const pathOf = (arg?: PathArg) => arg?.change?.path ?? arg?.path;
+
+/** After a re-applied autostash conflicted and was resolved, its copy in the stash is stale. */
+async function offerDropAutostash(git: Git): Promise<void> {
+  if (!(await hasAutostash(git))) return;
+  const choice = await vscode.window.showInformationMessage(
+    "Conflicts resolved. The pull left a copy of your local changes in the stash (autostash): drop it?",
+    "Drop Stash",
+    "Keep",
+  );
+  if (choice === "Drop Stash") await withProgress("Drop stash", () => dropAutostash(git));
+}
 
 export function registerOperationCommands(reg: Register, repos: Repos): void {
   const withGit =
@@ -63,14 +76,19 @@ export function registerOperationCommands(reg: Register, repos: Repos): void {
     withGit(async (git) => {
       const op = await currentOperation(git);
       if (!(await markersResolved(git))) return;
-      if (!op) return withProgress("Mark resolved", () => markResolved(git));
+      if (!op) {
+        await withProgress("Mark resolved", () => markResolved(git));
+        return offerDropAutostash(git);
+      }
       await withProgress(`Continue ${OPERATION_LABEL[op]}`, () => continueOperation(git, op));
     }),
   );
   reg(
     "gitTool.operation.markResolved",
     withGit(async (git) => {
-      if (await markersResolved(git)) await withProgress("Mark resolved", () => markResolved(git));
+      if (!(await markersResolved(git))) return;
+      await withProgress("Mark resolved", () => markResolved(git));
+      await offerDropAutostash(git);
     }),
   );
   reg(
@@ -101,18 +119,19 @@ export function registerOperationCommands(reg: Register, repos: Repos): void {
 
   // ---- One conflicted file (Changes view) -----------------------------------------------------
 
-  reg("gitTool.change.resolve", (arg?: PathArg) => {
-    const root = repos.currentRoot();
-    const file = pathOf(arg);
-    if (root && file) return openConflict(root, file);
-  });
+  reg(
+    "gitTool.change.resolve",
+    withGit(async (git, arg?: PathArg) => {
+      const file = pathOf(arg);
+      if (file) await openConflict(git, file);
+    }),
+  );
   const take = (side: "ours" | "theirs") =>
     withGit(async (git, arg?: PathArg) => {
       const file = pathOf(arg);
       if (!file) return;
       await withProgress(`Accept ${side} for ${path.posix.basename(file)}`, async () => {
-        await git.write(["checkout", `--${side}`, "--", file]);
-        await git.write(["add", "--", file]);
+        await acceptSide(git, file, side);
       });
     });
   reg("gitTool.change.acceptOurs", take("ours"));

@@ -3,6 +3,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { WorkingChange } from "../../shared/types";
+import { incomingOverlap } from "./pullGuard";
 import { GitError, type Git } from "./runner";
 import { gitPathToLocal } from "../../shared/winPaths";
 
@@ -85,7 +86,12 @@ export async function push(git: Git, force = false): Promise<void> {
  * upstream, stashing local changes around it. Problems are reported in git's words, so
  * errors.ts recognises them: no upstream, upstream deleted, conflicts.
  */
-export async function update(git: Git, method: "merge" | "rebase"): Promise<void> {
+export async function update(
+  git: Git,
+  method: "merge" | "rebase",
+  /** Asked, after the fetch, when local changes touch files the pull changes; false cancels. */
+  confirmOverlap?: (files: string[]) => Promise<boolean>,
+): Promise<void> {
   const branch = await currentBranch(git);
   if (!branch) throw new Error("HEAD is detached: you are not currently on a branch.");
   const upstream = await upstreamOf(git, branch);
@@ -98,6 +104,10 @@ export async function update(git: Git, method: "merge" | "rebase"): Promise<void
     throw new Error(
       `The upstream branch ${upstream.remote}/${upstream.branch} no longer exists on the remote.`,
     );
+  if (confirmOverlap) {
+    const files = await incomingOverlap(git);
+    if (files.length && !(await confirmOverlap(files))) return;
+  }
   await git.write(
     method === "rebase"
       ? ["rebase", "--autostash", "@{upstream}"]
@@ -139,6 +149,97 @@ export async function currentOperation(git: Git): Promise<Operation | undefined>
 export async function conflictedFiles(git: Git): Promise<string[]> {
   const out = await git.run(["diff", "--name-only", "--diff-filter=U", "-z"]);
   return [...new Set(out.split("\0").filter(Boolean))];
+}
+
+/**
+ * How a file is conflicted, from the index stages git keeps for it: 1 = common ancestor,
+ * 2 = ours (HEAD), 3 = theirs (the incoming side; the stash when re-applying one).
+ * Only `both-modified` and `both-added` have conflict markers to resolve in an editor.
+ */
+export type ConflictKind =
+  | "both-modified"
+  | "both-added"
+  | "deleted-by-us"
+  | "deleted-by-them"
+  | "added-by-us"
+  | "added-by-them"
+  | "both-deleted";
+
+/** Classifies each conflicted file from the output of `git ls-files -u -z`. Pure. */
+export function parseUnmerged(out: string): Map<string, ConflictKind> {
+  const stages = new Map<string, Set<number>>();
+  for (const entry of out.split("\0").filter(Boolean)) {
+    const m = /^\d+ [0-9a-f]+ ([123])\t([\s\S]+)$/.exec(entry);
+    if (!m) continue;
+    const set = stages.get(m[2]) ?? new Set<number>();
+    set.add(Number(m[1]));
+    stages.set(m[2], set);
+  }
+  const kinds = new Map<string, ConflictKind>();
+  for (const [file, s] of stages) {
+    const [base, ours, theirs] = [s.has(1), s.has(2), s.has(3)];
+    kinds.set(
+      file,
+      ours && theirs
+        ? base
+          ? "both-modified"
+          : "both-added"
+        : ours
+          ? base
+            ? "deleted-by-them"
+            : "added-by-us"
+          : theirs
+            ? base
+              ? "deleted-by-us"
+              : "added-by-them"
+            : "both-deleted",
+    );
+  }
+  return kinds;
+}
+
+export async function conflictKinds(git: Git): Promise<Map<string, ConflictKind>> {
+  return parseUnmerged(await git.run(["ls-files", "-u", "-z"]));
+}
+
+/** True when the file has two versions to merge, as opposed to one side having removed it. */
+export const hasMarkers = (kind: ConflictKind | undefined) =>
+  kind === undefined || kind === "both-modified" || kind === "both-added";
+
+/** Which side still has the file, or undefined when both versions exist (or neither does). */
+export function survivingSide(kind: ConflictKind): "ours" | "theirs" | undefined {
+  if (kind === "deleted-by-them" || kind === "added-by-us") return "ours";
+  if (kind === "deleted-by-us" || kind === "added-by-them") return "theirs";
+  return undefined;
+}
+
+/** Resolves a conflicted file by keeping one side's version, or removing it when that side has none. */
+export async function acceptSide(
+  git: Git,
+  file: string,
+  side: "ours" | "theirs",
+  kind?: ConflictKind,
+): Promise<void> {
+  const k = kind ?? (await conflictKinds(git)).get(file);
+  const surviving = k && !hasMarkers(k) ? survivingSide(k) : side;
+  if (k && !hasMarkers(k) && surviving !== side) {
+    await git.write(["rm", "-q", "-f", "--", file]); // that side deleted the file
+    return;
+  }
+  await git.write(["checkout", `--${side}`, "--", file]);
+  await git.write(["add", "--", file]);
+}
+
+/** Resolves a file one side deleted: keep the surviving version or delete it. */
+export async function resolveDeletion(
+  git: Git,
+  file: string,
+  kind: ConflictKind,
+  choice: "keep" | "delete",
+): Promise<void> {
+  const side = survivingSide(kind);
+  if (choice === "keep" && side) return acceptSide(git, file, side, kind);
+  await git.write(["rm", "-q", "-f", "--", file]);
 }
 
 /** Conflicted files whose content still has conflict markers. */

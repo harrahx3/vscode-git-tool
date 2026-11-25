@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+- Resolve Conflicts now handles a file that one side deleted or renamed (_deleted by us_ /
+  _deleted by them_, _added by us_ / _added by them_): instead of failing to open an editor,
+  it asks whether to keep the surviving version or delete the file. _Accept Ours_ and _Accept
+  Theirs_ in the Changes view do the same, and remove the file when that side deleted it.
+- Pull warns before it starts when uncommitted changes touch files the incoming commits also
+  change (renames and deletions included), the usual cause of a conflict when the stashed
+  changes are re-applied. You can cancel and commit or roll back those files first.
+- After resolving a conflict left by the autostash of a pull, _Mark Resolved_ / _Continue_
+  offers to drop that stale stash.
+
 ## 1.2.0 — 2026-11-24
 
 - New setting `gitTool.workspaceScope`: in a workspace with several repositories, choose

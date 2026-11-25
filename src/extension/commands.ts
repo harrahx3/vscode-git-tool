@@ -121,7 +121,22 @@ export function registerCommands(
       const method = vscode.workspace
         .getConfiguration("gitTool")
         .get<string>("updateMethod", "merge");
-      return withProgress("Pull", () => update(git, method === "rebase" ? "rebase" : "merge"));
+      const confirmOverlap = async (files: string[]) => {
+        const shown = files.slice(0, 5).join(", ") + (files.length > 5 ? ", …" : "");
+        const choice = await vscode.window.showWarningMessage(
+          `${files.length} file(s) you changed locally are also changed upstream: ${shown}.`,
+          {
+            modal: true,
+            detail:
+              "Your changes are stashed around the pull and re-applied afterwards; if both sides edited the same lines, or one side renamed or deleted the file, the re-apply stops on a conflict. Commit or roll back those files first to avoid it.",
+          },
+          "Pull Anyway",
+        );
+        return choice === "Pull Anyway";
+      };
+      return withProgress("Pull", () =>
+        update(git, method === "rebase" ? "rebase" : "merge", confirmOverlap),
+      );
     }),
   );
   reg(
