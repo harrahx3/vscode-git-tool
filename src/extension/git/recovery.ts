@@ -5,8 +5,8 @@
 import * as vscode from "vscode";
 import { resolveConflicts } from "./conflicts";
 import { classify, errorText, remoteMessages, type Problem, type ProblemKind } from "./errors";
-import { hookExists, showHookFailure } from "./hookReport";
-import { hookOf } from "./hooks";
+import { askHookConfirmation, hookExists, showHookFailure } from "./hookReport";
+import { CONFIRMED_ENV, hookConfirmation, hookOf } from "./hooks";
 import {
   OPERATION_LABEL,
   abortOperation,
@@ -48,6 +48,19 @@ function rerun(e: unknown, extra: string[] = [], before: string[] = []): Task | 
     : () => git.write(full, input);
 }
 
+/** Runs `retry` with the hook confirmation; a hook that still asks does not read it. */
+async function confirmedRetry(git: Git, hook: string, retry: Task): Promise<void> {
+  try {
+    await git.withHooksConfirmed(retry);
+  } catch (e) {
+    if (!hookConfirmation(errorText(e))) throw e;
+    throw new Error(
+      `the ${hook} hook asked again although ${CONFIRMED_ENV}=1 was set: it does not read that variable. Run the command in a terminal to answer it.`,
+      { cause: e },
+    );
+  }
+}
+
 function shellQuote(a: string): string {
   return /^[\w@%+=:,./-]+$/.test(a) ? a : `'${a.replace(/'/g, `'\\''`)}'`;
 }
@@ -72,6 +85,11 @@ export async function recover(title: string, e: unknown, retry: Task): Promise<b
   const again = () => withProgress(title, retry);
   const args = e instanceof GitError ? e.args : undefined;
   const hook = args && hookOf(args);
+  const confirmation = hook && args ? hookConfirmation(text) : undefined;
+  if (hook && args && confirmation)
+    return askHookConfirmation(title, hook, args, confirmation, () =>
+      withProgress(title, () => confirmedRetry(git, hook, retry)),
+    );
   if (hook && args && (await isHookFailure(git, hook, p.kind, text))) {
     void showHookFailure(title, git, hook, args, text, again, () =>
       withProgress(title, () => git.withoutHooks(retry)),

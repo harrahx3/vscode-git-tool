@@ -1,10 +1,17 @@
 // Shows why a hook stopped a commit or a push: a Markdown report beside the editor (hook results,
 // linter findings linked to their lines, full output), the findings in the Problems panel, and a
-// notification to commit again, open the report or skip the hooks.
+// notification to commit again, open the report or skip the hooks. Also asks the question of a
+// hook that wants a confirmation (GIT_HOOK_CONFIRM).
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { hookReport, parseFindings, parsePreCommit, type Finding } from "./hooks";
+import {
+  hookReport,
+  parseFindings,
+  parsePreCommit,
+  type Finding,
+  type HookConfirmation,
+} from "./hooks";
 import { getHost } from "./output";
 import type { Git } from "./runner";
 import { gitPathToLocal } from "../../shared/winPaths";
@@ -132,4 +139,24 @@ export async function showHookFailure(
     await actions[choice]();
     getHost().refresh();
   }
+}
+
+/**
+ * Asks the question of a hook that wants a confirmation, with its warnings. Yes runs `confirmed`
+ * (the command again, with GIT_HOOK_CONFIRMED=1). Returns whether it ran and succeeded.
+ */
+export async function askHookConfirmation(
+  title: string,
+  hook: string,
+  args: string[],
+  c: HookConfirmation,
+  confirmed: () => Promise<boolean>,
+): Promise<boolean> {
+  const button = `${args[0].charAt(0).toUpperCase()}${args[0].slice(1)} Anyway`;
+  const choice = await vscode.window.showWarningMessage(
+    `${title}: ${c.question}`,
+    { modal: true, detail: `${c.details ? `${c.details}\n\n` : ""}Asked by the ${hook} hook.` },
+    button,
+  );
+  return choice === button && confirmed();
 }

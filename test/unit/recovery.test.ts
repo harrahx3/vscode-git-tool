@@ -1,10 +1,11 @@
 // Real git failures in temporary repositories: the classifier must recognise git's own words,
 // and the conflict / update / stash operations must leave the repository as documented.
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { classify, errorText } from "../../src/extension/git/errors";
+import { hookConfirmation } from "../../src/extension/git/hooks";
 import {
   abortOperation,
   conflictedFiles,
@@ -190,6 +191,41 @@ describe("messages of other tools", () => {
     expect(classify("hint: blah\nerror: pathspec 'x' did not match\nhint: more").summary).toBe(
       "pathspec 'x' did not match",
     );
+  });
+});
+
+describe("a hook that asks for a confirmation", () => {
+  it("blocks the push with its question, then lets it through once confirmed", async () => {
+    await withRemote();
+    // A pre-push hook following the GIT_HOOK_CONFIRM protocol, as without a terminal.
+    write(
+      ".git/hooks/pre-push",
+      [
+        "#!/bin/sh",
+        "echo 'WARNING: this push needs a second look.' >&2",
+        '[ "$GIT_HOOK_CONFIRMED" = 1 ] && exit 0',
+        "echo 'GIT_HOOK_CONFIRM: Push anyway?' >&2",
+        "exit 1",
+      ].join("\n") + "\n",
+    );
+    chmodSync(join(dir, ".git/hooks/pre-push"), 0o755);
+    let text = "";
+    try {
+      await git.write(["push", "origin", "main"]);
+    } catch (e) {
+      text = errorText(e);
+    }
+    expect(hookConfirmation(text)).toEqual({
+      question: "Push anyway?",
+      details: "WARNING: this push needs a second look.",
+    });
+    await git.withHooksConfirmed(() => git.write(["push", "origin", "main"]));
+    const remote = new Git(remoteDir, "git");
+    expect((await remote.run(["rev-parse", "main"])).trim()).toBe(
+      (await git.run(["rev-parse", "main"])).trim(),
+    );
+    // The confirmation does not outlive the call.
+    await expect(git.write(["push", "origin", "main:other"])).rejects.toThrow(/Push anyway/);
   });
 });
 

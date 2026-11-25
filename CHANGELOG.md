@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- A hook can now ask a yes/no question although git runs it without a terminal: it prints
+  `GIT_HOOK_CONFIRM: <question>` after its warnings and exits non-zero. The extension shows the
+  question and the warnings in a dialog, and _Push Anyway_ (or _Commit Anyway_…) runs the
+  command again with `GIT_HOOK_CONFIRMED=1`. See _Hooks that ask a question_ in the README.
 - Resolve Conflicts now handles a file that one side deleted or renamed (_deleted by us_ /
   _deleted by them_, _added by us_ / _added by them_): instead of failing to open an editor,
   it asks whether to keep the surviving version or delete the file. _Accept Ours_ and _Accept

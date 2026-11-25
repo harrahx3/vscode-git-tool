@@ -212,6 +212,22 @@ Every command that changes the repository is logged in the _Git Changelists & Lo
 When a pre-commit hook passes, its summary (`pre-commit: 5 passed`) or its first line
 (`KNIME state OK: …`) shows in the status bar after the commit.
 
+**Hooks that ask a question.** Git runs hooks without a terminal here, so a hook cannot ask
+"Push anyway? [y/N]". It can ask through the extension instead: print its warnings, then a line
+`GIT_HOOK_CONFIRM: <question>`, and exit non-zero. The extension shows the question and the
+warnings in a dialog; _Push Anyway_ (or _Commit Anyway_…) runs the command again with
+`GIT_HOOK_CONFIRMED=1` in its environment, and the hook lets it through:
+
+```sh
+#!/bin/sh
+# .git/hooks/pre-push
+echo "WARNING: this tag also starts a release." >&2
+[ -t 2 ] && { printf 'Push anyway? [y/N] ' >&2; read -r a < /dev/tty; [ "$a" = y ]; exit; }
+[ "$GIT_HOOK_CONFIRMED" = 1 ] && exit 0
+echo "GIT_HOOK_CONFIRM: Push anyway?" >&2
+exit 1
+```
+
 ## Settings
 
 | Setting                         | Default  |                                                        |

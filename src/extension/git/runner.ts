@@ -1,4 +1,5 @@
 import { spawn } from "child_process";
+import { CONFIRMED_ENV } from "./hooks";
 
 export class GitError extends Error {
   /** The repository and command that failed, so a recovery action can run it again. */
@@ -41,6 +42,7 @@ export class Git {
   ) {}
 
   private noVerify = false;
+  private hooksConfirmed = false;
 
   /** Runs `fn` with the hooks skipped (`--no-verify` on commit, push and merge). */
   async withoutHooks<T>(fn: () => Promise<T>): Promise<T> {
@@ -49,6 +51,19 @@ export class Git {
       return await fn();
     } finally {
       this.noVerify = false;
+    }
+  }
+
+  /**
+   * Runs `fn` with `GIT_HOOK_CONFIRMED=1`: the user answered yes to the question a hook asked
+   * (see {@link hookConfirmation}).
+   */
+  async withHooksConfirmed<T>(fn: () => Promise<T>): Promise<T> {
+    this.hooksConfirmed = true;
+    try {
+      return await fn();
+    } finally {
+      this.hooksConfirmed = false;
     }
   }
 
@@ -62,8 +77,8 @@ export class Git {
    * available, so the user is asked for credentials like in Source Control; else plain git.
    */
   async network(args: string[]): Promise<void> {
-    // The Git extension's API cannot skip hooks: plain git then.
-    const task = this.noVerify ? undefined : this.networkRunner?.(args);
+    // The Git extension's API can neither skip hooks nor pass the confirmation: plain git then.
+    const task = this.noVerify || this.hooksConfirmed ? undefined : this.networkRunner?.(args);
     if (!task) {
       await this.write(args);
       return;
@@ -125,7 +140,13 @@ export class Git {
         cwd: this.root,
         // English messages (errors.ts recognises them); never wait for an editor or a prompt:
         // `rebase --continue` and friends keep the prepared commit message.
-        env: { ...process.env, GIT_TERMINAL_PROMPT: "0", LC_ALL: "C", GIT_EDITOR: "true" },
+        env: {
+          ...process.env,
+          GIT_TERMINAL_PROMPT: "0",
+          LC_ALL: "C",
+          GIT_EDITOR: "true",
+          ...(this.hooksConfirmed ? { [CONFIRMED_ENV]: "1" } : {}),
+        },
       });
       const out: Buffer[] = [];
       const err: Buffer[] = [];

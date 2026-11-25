@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  hookConfirmation,
   hookOf,
   hookReport,
   hookSummary,
@@ -180,5 +181,29 @@ describe("branch and tag names", () => {
     expect(suggestTag(["1.4.9"], today)).toBe("1.4.10");
     expect(suggestTag(["release-candidate"], today)).toBe("");
     expect(suggestTag([], today)).toBe("");
+  });
+});
+
+describe("a hook asking for a confirmation", () => {
+  it("reads the question and the warnings before it, without git's own lines", () => {
+    const text = [
+      "",
+      "WARNING: pushing this tag also releases the other project.",
+      "  v1  ->  tag created on the other project",
+      "",
+      "GIT_HOOK_CONFIRM: Push anyway?",
+      "No terminal to answer on: confirm in your Git client, or push from a terminal.",
+      "error: failed to push some refs to '/tmp/remote'",
+    ].join("\n");
+    expect(hookConfirmation(text)).toEqual({
+      question: "Push anyway?",
+      details:
+        "WARNING: pushing this tag also releases the other project.\n  v1  ->  tag created on the other project",
+    });
+  });
+
+  it("gives a default question, and nothing without the marker", () => {
+    expect(hookConfirmation("GIT_HOOK_CONFIRM:")?.question).toBe("Continue anyway?");
+    expect(hookConfirmation("error: failed to push some refs to 'x'")).toBeUndefined();
   });
 });

@@ -31,6 +31,39 @@ export function hookOf(args: string[]): string | undefined {
   return undefined;
 }
 
+/**
+ * A hook that wants a yes/no answer but has no terminal to ask on (git runs it without one here)
+ * prints its warnings, then a line `GIT_HOOK_CONFIRM: <question>`, and exits non-zero. Once the
+ * user agrees, the command runs again with `GIT_HOOK_CONFIRMED=1` in its environment, and the
+ * hook lets it through.
+ */
+export const CONFIRM_MARKER = "GIT_HOOK_CONFIRM:";
+export const CONFIRMED_ENV = "GIT_HOOK_CONFIRMED";
+
+export interface HookConfirmation {
+  question: string;
+  /** What the hook printed before its question: the warnings to read before answering. */
+  details: string;
+}
+
+// Lines git adds around a refused push; not the hook's words.
+const GIT_PUSH_LINE = /^(?:To \S|error: failed to push some refs|hint: )/;
+
+/** The confirmation a hook asks for in `text` (its output), if any. */
+export function hookConfirmation(text: string): HookConfirmation | undefined {
+  const lines = stripAnsi(text).split("\n");
+  const i = lines.findIndex((l) => l.trimStart().startsWith(CONFIRM_MARKER));
+  if (i < 0) return undefined;
+  const question = lines[i].trimStart().slice(CONFIRM_MARKER.length).trim();
+  const details = lines
+    .slice(0, i)
+    .filter((l) => !GIT_PUSH_LINE.test(l))
+    .join("\n")
+    .replace(/^\s*\n/, "")
+    .trimEnd();
+  return { question: question || "Continue anyway?", details };
+}
+
 export function stripAnsi(text: string): string {
   // eslint-disable-next-line no-control-regex
   return text.replace(/\x1b\[[0-9;]*[A-Za-z]/g, "").replace(/\r\n?/g, "\n");
