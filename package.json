@@ -331,6 +331,12 @@
         "category": "Git Changelists & Log"
       },
       {
+        "command": "gitTool.ref.fastForward",
+        "title": "Update (Fast-Forward)",
+        "category": "Git Changelists & Log",
+        "icon": "$(arrow-down)"
+      },
+      {
         "command": "gitTool.ref.rename",
         "title": "Rename…",
         "category": "Git Changelists & Log"
@@ -351,6 +357,12 @@
         "title": "Delete Selected…",
         "category": "Git Changelists & Log",
         "icon": "$(trash)"
+      },
+      {
+        "command": "gitTool.refs.fastForward",
+        "title": "Update Selected (Fast-Forward)",
+        "category": "Git Changelists & Log",
+        "icon": "$(arrow-down)"
       },
       {
         "command": "gitTool.ref.actions",
@@ -872,6 +884,10 @@
           "when": "false"
         },
         {
+          "command": "gitTool.ref.fastForward",
+          "when": "false"
+        },
+        {
           "command": "gitTool.ref.rename",
           "when": "false"
         },
@@ -1005,6 +1021,10 @@
         },
         {
           "command": "gitTool.refs.delete",
+          "when": "false"
+        },
+        {
+          "command": "gitTool.refs.fastForward",
           "when": "false"
         },
         {
@@ -1202,6 +1222,11 @@
           "command": "gitTool.ref.checkout",
           "when": "webviewId == gitTool.log && webviewSection == ref && !isCurrent",
           "group": "1_checkout@1"
+        },
+        {
+          "command": "gitTool.ref.fastForward",
+          "when": "webviewId == gitTool.log && webviewSection == ref && refKind == head && hasUpstream",
+          "group": "1_checkout@1.5"
         },
         {
           "command": "gitTool.ref.newBranch",
@@ -1721,6 +1746,11 @@
           "group": "1_checkout@1"
         },
         {
+          "command": "gitTool.ref.fastForward",
+          "when": "view == gitTool.branches && !listMultiSelection && viewItem =~ /^ref-head/",
+          "group": "1_checkout@1.5"
+        },
+        {
           "command": "gitTool.ref.newBranch",
           "when": "view == gitTool.branches && !listMultiSelection && viewItem =~ /^ref-/",
           "group": "1_checkout@2"
@@ -1774,6 +1804,11 @@
           "command": "gitTool.refs.delete",
           "when": "view == gitTool.branches && listMultiSelection && viewItem =~ /^ref-/",
           "group": "2_manage@1"
+        },
+        {
+          "command": "gitTool.refs.fastForward",
+          "when": "view == gitTool.branches && listMultiSelection && viewItem =~ /^ref-head/",
+          "group": "1_compare@2"
         },
         {
           "command": "gitTool.compare.diff",

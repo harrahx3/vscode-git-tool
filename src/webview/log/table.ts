@@ -255,6 +255,7 @@ export class CommitTable {
                   refName: l.ref.name,
                   refKind: l.ref.kind,
                   isCurrent: l.current,
+                  hasUpstream: !!l.ref.upstream,
                 })
               : undefined,
           },

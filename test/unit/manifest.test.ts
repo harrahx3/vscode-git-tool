@@ -110,6 +110,7 @@ describe("package.json menus", () => {
     expect(multi.map((i) => i.command).sort()).toEqual([
       "gitTool.refs.compare",
       "gitTool.refs.delete",
+      "gitTool.refs.fastForward",
     ]);
   });
 });

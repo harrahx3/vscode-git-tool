@@ -3,6 +3,7 @@ import * as vscode from "vscode";
 import { refNameProblem } from "../shared/refNames";
 import type { Ref, RefKind } from "../shared/types";
 import { head, refs } from "./git/queries";
+import { fastForwardBranches } from "./fastForward";
 import type { Git } from "./git/runner";
 import { withProgress } from "./git/ui";
 import type { LogView } from "./logView";
@@ -138,6 +139,12 @@ export function branchActions(
   const isCurrent = ref.kind === "head" && ref.name === current;
   const items: ActionItem[] = [];
   if (!isCurrent) items.push({ label: "$(check) Checkout", run: () => checkout(git, ref) });
+  if (!isCurrent && ref.kind === "head" && ref.upstream)
+    items.push({
+      label: "$(arrow-down) Update (Fast-Forward)",
+      detail: `Fetch and fast-forward to ${ref.upstream} without checking it out`,
+      run: () => fastForwardBranches(git, [ref.name]),
+    });
   items.push({
     label: `$(git-branch-create) New Branch from '${ref.name}'…`,
     run: () => newBranchFrom(git, ref.name),

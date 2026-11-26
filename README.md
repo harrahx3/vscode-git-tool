@@ -11,8 +11,8 @@ colors and native menus, and sits next to VS Code's own Source Control view with
 
 - **Branches** pane: HEAD, Local, Remote and Tags, with branch names grouped into folders on `/`
   and ahead/behind counts. A click jumps to the branch's commit, a double-click shows only its
-  history, and a right-click gives Checkout, New Branch, Compare with Current, Rebase Current
-  onto This, Merge into Current, Push, Rename and Delete.
+  history, and a right-click gives Checkout, Update (Fast-Forward), New Branch, Compare with
+  Current, Rebase Current onto This, Merge into Current, Push, Rename and Delete.
 - **Commit graph**: colored lanes, branch and tag labels (`origin & main` when both point to
   the same commit), author, date and hash. Only the visible rows are drawn, so large histories
   scroll smoothly, and older commits load as you scroll.
@@ -42,11 +42,12 @@ colors and native menus, and sits next to VS Code's own Source Control view with
   - Right-click HEAD: New Branch from Here, New Tag…, Compare with…, Show History, and Push when
     a branch is checked out.
   - Hover buttons: _Checkout_ and _Compare with Current_.
-  - Right-click: Checkout, New Branch from Here, Compare with Current, Compare with…, Show
-    History, Rebase Current onto This, Merge into Current, Push, Rename, Delete.
+  - Right-click: Checkout, Update (Fast-Forward), New Branch from Here, Compare with Current,
+    Compare with…, Show History, Rebase Current onto This, Merge into Current, Push, Rename,
+    Delete.
   - Several selected (Ctrl/Shift+click): the right-click menu changes to _Compare Selected
-    Branches_ (two branches or tags) and _Delete Selected…_ (one confirmation; the current
-    branch is kept).
+    Branches_ (two branches or tags), _Update Selected (Fast-Forward)_ and _Delete Selected…_
+    (one confirmation; the current branch is kept).
   - Title bar: Fetch, Pull, New Branch, Checkout…, Compare Branches…; Show Log
     and Refresh are under `…`.
 - **Compare** view (PyCharm's _Compare with Current_), shown once you compare two branches,
@@ -184,6 +185,12 @@ Changelists & Log: Switch Worktree…_)
   changes stashed around it), **Fetch** and **Push…** (with Force Push, which uses
   `--force-with-lease`). Fetch and push go through VS Code's Git extension, so you are asked
   to sign in like in Source Control.
+- **Update (Fast-Forward)** on a local branch that is not checked out (right-click it in the
+  Branches view or the Log, or pick it in the Branches popup): fetches its upstream and moves
+  the branch forward to it, without a checkout and without touching your working tree. Select
+  several branches in the Branches view to update them all at once. A branch with commits of
+  its own (diverged) or checked out in another worktree is left alone and reported; on the
+  current branch the command runs a normal Pull.
 - **Tags**: _New Tag…_ (Branches view title, Log toolbar, commit and branch menus) suggests the
   next name from the previous tags: the same prefix with today's date for `PREFIX_YYMMDD`
   tags (the KNIME repositories' convention), or the next patch version for `v1.2.3`. Give a

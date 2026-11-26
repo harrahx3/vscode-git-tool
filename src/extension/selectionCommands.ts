@@ -4,6 +4,7 @@ import * as vscode from "vscode";
 import type { BranchNode } from "./branchesTree";
 import { deleteRefs } from "./branches";
 import { copyText } from "./clipboard";
+import { fastForwardBranches } from "./fastForward";
 import type { Register } from "./commands";
 import { head } from "./git/queries";
 import type { Repos } from "./git/repos";
@@ -95,6 +96,16 @@ export function registerSelectionCommands(reg: Register, repos: Repos, log: LogV
     withGit(async (git, clicked?: BranchNode, selected?: BranchNode[]) => {
       const picked = refNodes(clicked, selected).map((n) => ({ name: n.refName, kind: n.refKind }));
       if (picked.length) await deleteRefs(git, picked, (await head(git)).branch);
+    }),
+  );
+  reg(
+    "gitTool.refs.fastForward",
+    withGit(async (git, clicked?: BranchNode, selected?: BranchNode[]) => {
+      const names = treeTargets(clicked, selected)
+        .filter((n): n is ComparableNode => n.kind === "ref" || n.kind === "head")
+        .filter((n) => n.refKind === "head")
+        .map((n) => n.refName);
+      if (names.length) await fastForwardBranches(git, names);
     }),
   );
 }

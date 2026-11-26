@@ -287,6 +287,48 @@ const tests: [string, () => Promise<void>][] = [
     },
   ],
   [
+    "Update (Fast-Forward) moves a branch that is not checked out, and leaves a diverged one",
+    async () => {
+      git("branch", "ff-me", "main");
+      git("push", "-q", "-u", "origin", "ff-me");
+      const before = git("rev-parse", "ff-me");
+      // A commit lands on the remote; this clone does not know it until the fetch.
+      const incoming = git("commit-tree", "ff-me^{tree}", "-p", "ff-me", "-m", "incoming");
+      git("push", "-q", "origin", `${incoming}:refs/heads/ff-me`);
+      git("update-ref", "refs/remotes/origin/ff-me", before);
+      const shown = await answering({}, () =>
+        vscode.commands.executeCommand("gitTool.ref.fastForward", {
+          webviewSection: "ref",
+          refName: "ff-me",
+          refKind: "head",
+        }),
+      );
+      assert.strictEqual(git("rev-parse", "ff-me"), incoming);
+      assert.strictEqual(git("branch", "--show-current"), "main");
+      assert.ok(
+        shown.some((m) => m.startsWith("ff-me fast-forwarded")),
+        shown.join(" | "),
+      );
+
+      // A local commit and a new remote one: not a fast-forward, the branch stays put.
+      const local = git("commit-tree", "ff-me^{tree}", "-p", "ff-me", "-m", "local");
+      git("update-ref", "refs/heads/ff-me", local);
+      const other = git("commit-tree", "ff-me^{tree}", "-p", incoming, "-m", "other");
+      git("push", "-q", "origin", `${other}:refs/heads/ff-me`);
+      const node = { kind: "ref", refName: "ff-me", refKind: "head", leaf: "ff-me" };
+      const warned = await answering({}, () =>
+        vscode.commands.executeCommand("gitTool.refs.fastForward", node, [node]),
+      );
+      assert.strictEqual(git("rev-parse", "ff-me"), local);
+      assert.ok(
+        warned.some((m) => m.includes("has diverged from origin/ff-me")),
+        warned.join(" | "),
+      );
+      git("branch", "-q", "-D", "ff-me");
+      git("push", "-q", "origin", "--delete", "ff-me");
+    },
+  ],
+  [
     "a failing pre-push hook: its findings go to the Problems panel",
     async () => {
       const hook = path.join(gitDir(), "hooks", "pre-push");

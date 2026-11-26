@@ -128,6 +128,7 @@ export class BranchTree {
               refName: ref.name,
               refKind: ref.kind,
               isCurrent: ref.kind === "head" && ref.name === this.head.branch,
+              hasUpstream: !!ref.upstream,
             })
           : undefined,
       },

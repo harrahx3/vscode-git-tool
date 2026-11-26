@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- _Update (Fast-Forward)_ updates a local branch from its upstream without checking it out:
+  it fetches, then moves the branch forward if it has no commits of its own. Right-click a
+  branch in the Branches view or the Log, pick it in the Branches popup, or select several
+  branches in the Branches view for _Update Selected (Fast-Forward)_. Diverged branches and
+  branches checked out in another worktree are reported and left alone; the current branch is
+  pulled as usual.
 - A hook can now ask a yes/no question although git runs it without a terminal: it prints
   `GIT_HOOK_CONFIRM: <question>` after its warnings and exits non-zero. The extension shows the
   question and the warnings in a dialog, and _Push Anyway_ (or _Commit Anyway_…) runs the

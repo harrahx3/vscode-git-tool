@@ -19,6 +19,7 @@ import type { CommitView } from "./commitView";
 import { push, update } from "./git/operations";
 import { head, lineHistory, refs } from "./git/queries";
 import type { Repos } from "./git/repos";
+import { fastForwardBranches } from "./fastForward";
 import type { Git } from "./git/runner";
 import { withProgress } from "./git/ui";
 import type { LogView } from "./logView";
@@ -271,6 +272,10 @@ export function registerCommands(
       const ref = (await refs(git)).find((x) => x.kind === "head" && x.name === r.refName);
       await pushBranch(git, r.refName, ref?.upstream);
     }),
+  );
+  reg(
+    "gitTool.ref.fastForward",
+    withGit((git, r: RefContext) => fastForwardBranches(git, [r.refName])),
   );
   reg(
     "gitTool.ref.rename",
