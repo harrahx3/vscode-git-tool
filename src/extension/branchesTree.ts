@@ -94,6 +94,10 @@ export class BranchesTree implements vscode.TreeDataProvider<BranchNode>, vscode
     this.shown = shown;
     this.data = data;
     this.view.message = shown.length ? undefined : "No Git repository is open.";
+    // Local and remote branches counted apart (tags left out), so the sizes show when folded.
+    const count = (kind: string) =>
+      [...data.values()].reduce((n, d) => n + d.refs.filter((r) => r.kind === kind).length, 0);
+    this.view.title = `Branches (${count("head")} local · ${count("remote")} remote)`;
     this.changed.fire();
   }
 

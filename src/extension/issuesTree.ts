@@ -102,6 +102,8 @@ export class IssuesTree implements vscode.TreeDataProvider<IssueNode>, vscode.Di
     const only = shown.length === 1 ? states.get(shown[0]) : undefined;
     this.hosting = only?.hosting;
     this.view.message = shown.length ? only?.message : "No Git repository is open.";
+    const count = [...states.values()].reduce((n, s) => n + s.issues.length, 0);
+    this.view.title = [...states.values()].some((s) => s.loaded) ? `Issues (${count})` : "Issues";
     void vscode.commands.executeCommand("setContext", NEEDS_AUTH, !!only?.needsAuth);
     this.showDescription();
     this.changed.fire(undefined);

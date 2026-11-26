@@ -79,7 +79,7 @@ export class WorktreesTree implements vscode.TreeDataProvider<WorktreeNode>, vsc
     this.fingerprint = fingerprint;
     this.nodes = nodes;
     this.view.message = shown.length ? undefined : "No Git repository is open.";
-    this.view.description = nodes.length > 1 ? String(nodes.length) : undefined;
+    this.view.title = `Worktrees (${nodes.length})`;
     this.changed.fire();
   }
 

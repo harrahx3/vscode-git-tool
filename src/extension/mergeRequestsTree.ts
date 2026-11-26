@@ -144,7 +144,11 @@ export class MergeRequestsTree implements vscode.TreeDataProvider<MrNode>, vscod
     // One repository: its message and sign-in buttons go on the view itself.
     const only = shown.length === 1 ? states.get(shown[0]) : undefined;
     this.hosting = only?.hosting;
-    this.view.title = `${mergeRequestWord(only?.hosting?.provider ?? providerOf(states))}s`;
+    const count = [...states.values()].reduce((n, s) => n + s.mrs.length, 0);
+    const loaded = [...states.values()].some((s) => s.loaded);
+    this.view.title =
+      `${mergeRequestWord(only?.hosting?.provider ?? providerOf(states))}s` +
+      (loaded ? ` (${count})` : "");
     this.view.message = shown.length ? only?.message : "No Git repository is open.";
     void vscode.commands.executeCommand("setContext", NEEDS_AUTH, !!only?.needsAuth);
     this.showDescription();
